@@ -79,7 +79,9 @@ def is_allowed_file(path_str: str) -> bool:
 
 def is_allowed_email(email_str: str) -> bool:
     domain = email_str.split("@")[-1].lower()
-    return domain in ALLOWED_EMAILS or domain.endswith(".example.com")
+    # RFC 2606 reserves the .test TLD for documentation and testing; it can
+    # never resolve to a real mailbox, so it is never a personal address.
+    return domain in ALLOWED_EMAILS or domain.endswith(".example.com") or domain.endswith(".test")
 
 
 def is_allowed_ip(ip_str: str) -> bool:
@@ -151,9 +153,14 @@ def scan_content(content: str, source_label: str) -> List[Tuple[str, int, str]]:
         if SECRET_PATTERNS["private_key"].search(line):
             findings.append((source_label, line_idx, "private_key: [REDACTED]"))
 
-        # 2. OTP Auth URI
-        if SECRET_PATTERNS["otpauth_uri"].search(line) and not is_scanner_self:
-            findings.append((source_label, line_idx, "otpauth_uri: [REDACTED]"))
+        # 2. OTP Auth URI (only when a literal secret is embedded; runtime-built
+        # templates such as f-string placeholders carry no committed secret)
+        m_otp = SECRET_PATTERNS["otpauth_uri"].search(line)
+        if m_otp and not is_scanner_self:
+            uri = m_otp.group(0)
+            m_embedded = re.search(r"[?&]secret=([A-Za-z2-7]{16,})", uri)
+            if m_embedded and "{" not in m_embedded.group(1) and "}" not in m_embedded.group(1):
+                findings.append((source_label, line_idx, "otpauth_uri: [REDACTED]"))
 
         # 3. TOTP secret
         m_totp = SECRET_PATTERNS["totp_secret_assignment"].search(line)

@@ -40,11 +40,6 @@ jobs:
         run: |
           python -c "import unittest; loader = unittest.TestLoader(); suite = loader.discover('tests'); count = suite.countTestCases(); print(f'Discovered {count} tests'); assert count >= 142, f'Test count {count} is below threshold 142'"
 
-      - name: Run test suite (Standard Library)
-        run: |
-          python -m unittest discover -s tests
-          python -m unittest discover -s marketscope/tests
-
       - name: Set up Node.js for frontend regression tests
         uses: actions/setup-node@v4
         with:
@@ -53,6 +48,11 @@ jobs:
 
       - name: Install development-only frontend test tools
         run: npm ci --ignore-scripts
+
+      - name: Run test suite (Standard Library)
+        run: |
+          python -m unittest discover -s tests
+          python -m unittest discover -s marketscope/tests
 
       - name: Check workspace modules and interactions
         run: |
