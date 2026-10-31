@@ -122,3 +122,4 @@ def ranking_context(daily_ranking: Dict[str, Any] | None) -> str:
     return "AUTHORITATIVE DAILY RANKING DATA (explain; never reorder):\n" + json.dumps(
         _bounded_value(selected), ensure_ascii=True, allow_nan=False, separators=(",", ":")
     )
+

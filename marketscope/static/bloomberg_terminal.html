@@ -65,7 +65,7 @@
     @keyframes pulseGlow { 0% { transform: scale(0.95); opacity: 0.8; } 50% { transform: scale(1.15); opacity: 1; } 100% { transform: scale(0.95); opacity: 0.8; } }
     .bb-pulse { animation: pulseGlow 2s infinite ease-in-out; }
   </style>
-</head>
+<link rel="stylesheet" href="/static/stock-badges.css"></head>
 <body class="w-full min-h-screen bb-grid text-slate-300">
 
   <!-- ===================================================================== -->
@@ -1699,5 +1699,6 @@
     setInterval(fetchAiStatus, 15000);
   })();
   </script>
-</body>
+<div data-margin-legend aria-label="Zerodha intraday margin reference"></div><script src="/static/stock-badges.js"></script></body>
 </html>
+

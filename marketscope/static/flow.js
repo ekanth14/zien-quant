@@ -1032,7 +1032,7 @@ function openStockModal(symbol) {
   const subEl = document.getElementById("modalStockSub");
   const s = flowData?.stocks?.[symbol];
 
-  if (titleEl) titleEl.textContent = symbol;
+  if (titleEl) { titleEl.textContent = symbol; titleEl.setAttribute("data-margin-symbol", symbol); }
   if (subEl && s) subEl.textContent = `${s.name} - Rs ${s.last.toFixed(2)} (${s.change_pct >= 0 ? "+" : ""}${s.change_pct.toFixed(2)}%)`;
 
   renderModalChart(symbol);
@@ -1151,7 +1151,7 @@ async function loadLayaPanel(symbol) {
   if (!drawer || !contentEl) return;
 
   drawer.classList.add("open");
-  if (titleEl) titleEl.textContent = symbol;
+  if (titleEl) { titleEl.textContent = symbol; titleEl.setAttribute("data-margin-symbol", symbol); }
   if (sessionState !== "LIVE") {
     const stock = flowData?.stocks?.[symbol];
     const summary = stock
@@ -1187,3 +1187,4 @@ async function loadLayaPanel(symbol) {
     contentEl.innerHTML = `<div style="color: var(--pink-red); padding: 12px;">Failed to generate AI brief: ${escapeHtml(e.message)}</div>`;
   }
 }
+

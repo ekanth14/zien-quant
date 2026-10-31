@@ -1,0 +1,271 @@
+{
+  "schema_version": 1,
+  "as_of": "2026-10-30",
+  "mode": "PAPER RESEARCH ONLY",
+  "strategies": [
+    {
+      "id": "cash_baseline",
+      "name": "Cash / no-trade benchmark",
+      "category": "Backtesting, validation, and overfitting prevention",
+      "version": "research-v1",
+      "state": "EXPERIMENTAL",
+      "enabled": false,
+      "approved": false,
+      "executable_offline": true,
+      "source_ids": [],
+      "entry_rules": "Always NO TRADE. Hold virtual cash; no assumed interest.",
+      "exit_rules": "No entries or exits.",
+      "formula": "Exposure = 0; trading P&L = 0.",
+      "limitations": "No alpha claim; comparable observed session coverage still required.",
+      "data_requirements": "Authorized sourced OHLCV; complete closed bars; observation timestamps; verified regular NSE calendar; instrument identity and adjustment basis.",
+      "intervals": [
+        1,
+        3,
+        5,
+        15
+      ],
+      "validation": "Not validated on NSE. No held-out accuracy or profit claimed."
+    },
+    {
+      "id": "orb15_atr",
+      "name": "15-minute opening range + VWAP",
+      "category": "Opening range breakout and price action",
+      "version": "research-v1",
+      "state": "EXPERIMENTAL",
+      "enabled": false,
+      "approved": false,
+      "executable_offline": true,
+      "source_ids": [
+        "S1"
+      ],
+      "entry_rules": "LONG when previous close \u2264 opening high < current close AND close > session VWAP. SHORT uses the reversed low breakout. Evaluate only after the complete 09:15\u201309:30 range.",
+      "exit_rules": "Next-bar limit at signal close, validity 15 minutes; stop 1 ATR, target 2 ATR; timeout 90 minutes; simulator closes by 15:15 IST. Stop first on ambiguous OHLC bars.",
+      "formula": "OR_high = max(H in first 15m); OR_low = min(L in first 15m). ATR14 = mean of 14 true ranges.",
+      "limitations": "Our proposed NSE baseline; different range, ATR and exits from the source. Not a reproduced published strategy.",
+      "data_requirements": "Authorized sourced OHLCV; complete closed bars; observation timestamps; verified regular NSE calendar; instrument identity and adjustment basis.",
+      "intervals": [
+        1,
+        3,
+        5,
+        15
+      ],
+      "validation": "Not validated on NSE. No held-out accuracy or profit claimed."
+    },
+    {
+      "id": "ema9_vwap",
+      "name": "EMA9 / session VWAP crossing",
+      "category": "VWAP-based trading",
+      "version": "research-v1",
+      "state": "EXPERIMENTAL",
+      "enabled": false,
+      "approved": false,
+      "executable_offline": true,
+      "source_ids": [
+        "Q1",
+        "Q5"
+      ],
+      "entry_rules": "LONG if prior EMA9 \u2264 prior VWAP and current EMA9 > current VWAP; SHORT is the reverse. Require complete session volume and closed bars.",
+      "exit_rules": "Next-bar limit at signal close, validity 15 minutes; stop 1 ATR, target 2 ATR; timeout 90 minutes; simulator closes by 15:15 IST. Stop first on ambiguous OHLC bars.",
+      "formula": "EMA_t = (2/10) C_t + (8/10) EMA_previous; SMA(9) seed. VWAP = \u03a3[(H+L+C)/3 \u00d7 V] / \u03a3V.",
+      "limitations": "Negative-control candidate. Source failed net-edge confirmation; our ATR/limit execution is a new adaptation.",
+      "data_requirements": "Authorized sourced OHLCV; complete closed bars; observation timestamps; verified regular NSE calendar; instrument identity and adjustment basis.",
+      "intervals": [
+        1,
+        3,
+        5,
+        15
+      ],
+      "validation": "Not validated on NSE. No held-out accuracy or profit claimed."
+    },
+    {
+      "id": "zscore_reversion",
+      "name": "Residual z-score mean reversion",
+      "category": "Mean reversion and statistical arbitrage",
+      "version": "research-v1",
+      "state": "DESIGN_ONLY",
+      "enabled": false,
+      "approved": false,
+      "executable_offline": false,
+      "source_ids": [
+        "Q2"
+      ],
+      "entry_rules": "Proposed: fit residual on training prefix, LONG below \u22122, SHORT above +2; no entries during detected trend regime.",
+      "exit_rules": "Design only: exit near zero, hard ATR stop, time limit and end-of-session cutoff.",
+      "formula": "z_t = (x_t \u2212 \u03bc_training) / \u03c3_training; zero or missing \u03c3 blocks.",
+      "limitations": "Thresholds require frozen specification and validation before code/activation.",
+      "data_requirements": "Authorized sourced OHLCV; complete closed bars; observation timestamps; verified regular NSE calendar; instrument identity and adjustment basis.",
+      "intervals": [],
+      "validation": "Not validated on NSE. No held-out accuracy or profit claimed."
+    },
+    {
+      "id": "ou_pairs",
+      "name": "Cointegrated residual / OU",
+      "category": "Mathematical and statistical models",
+      "version": "research-v1",
+      "state": "DESIGN_ONLY",
+      "enabled": false,
+      "approved": false,
+      "executable_offline": false,
+      "source_ids": [
+        "Q2"
+      ],
+      "entry_rules": "Design only: cointegration and residual-stationarity gate before two-leg z-score entry.",
+      "exit_rules": "Synchronized two-leg exits; reject missing hedge liquidity.",
+      "formula": "x_(t+\u0394)=a+b x_t+\u03b5; \u03ba=\u2212ln(b)/\u0394, \u03bc=a/(1\u2212b), half-life=ln(2)/\u03ba for 0<b<1.",
+      "limitations": "Correlation alone is insufficient; two-leg costs, changing hedge ratios and shortability are unresolved.",
+      "data_requirements": "Authorized sourced OHLCV; complete closed bars; observation timestamps; verified regular NSE calendar; instrument identity and adjustment basis.",
+      "intervals": [],
+      "validation": "Not validated on NSE. No held-out accuracy or profit claimed."
+    },
+    {
+      "id": "volatility_squeeze",
+      "name": "Compression as a volatility feature",
+      "category": "Volatility and volatility compression",
+      "version": "research-v1",
+      "state": "DESIGN_ONLY",
+      "enabled": false,
+      "approved": false,
+      "executable_offline": false,
+      "source_ids": [
+        "Q4",
+        "Q5"
+      ],
+      "entry_rules": "Design only: compare next-window absolute returns against simple volatility-clustering baseline.",
+      "exit_rules": "No directional entry/exit strategy configured.",
+      "formula": "BB = SMA \u00b1 k \u03c3; KC = EMA \u00b1 m ATR; squeeze when BB lies inside KC.",
+      "limitations": "Compression is not evidence of imminent directional profit; corrected negative findings retained.",
+      "data_requirements": "Authorized sourced OHLCV; complete closed bars; observation timestamps; verified regular NSE calendar; instrument identity and adjustment basis.",
+      "intervals": [],
+      "validation": "Not validated on NSE. No held-out accuracy or profit claimed."
+    },
+    {
+      "id": "regime_filter",
+      "name": "Lagged volatility versus HMM regimes",
+      "category": "Intraday seasonality and market regimes",
+      "version": "research-v1",
+      "state": "DESIGN_ONLY",
+      "enabled": false,
+      "approved": false,
+      "executable_offline": false,
+      "source_ids": [
+        "Q3"
+      ],
+      "entry_rules": "Design only: compare lagged realized-volatility bins with filtered HMM state probabilities.",
+      "exit_rules": "Regime filter only; cannot generate a standalone trade.",
+      "formula": "P(S_t|x_\u2264t) \u221d p(x_t|S_t) \u03a3 P(S_t|S_(t\u22121))P(S_(t\u22121)|x_<t).",
+      "limitations": "Never use full-sample smoothed states or refit on test data.",
+      "data_requirements": "Authorized sourced OHLCV; complete closed bars; observation timestamps; verified regular NSE calendar; instrument identity and adjustment basis.",
+      "intervals": [],
+      "validation": "Not validated on NSE. No held-out accuracy or profit claimed."
+    },
+    {
+      "id": "calibrated_ensemble",
+      "name": "Calibrated baseline / tree ensemble",
+      "category": "Machine learning and forecasting",
+      "version": "research-v1",
+      "state": "DESIGN_ONLY",
+      "enabled": false,
+      "approved": false,
+      "executable_offline": false,
+      "source_ids": [],
+      "entry_rules": "Design only: logistic baseline before random forest or boosting; select only after purged chronological evaluation.",
+      "exit_rules": "Net expected value must exceed costs and uncertainty; abstain otherwise.",
+      "formula": "p = sigmoid(\u03b20+\u03b2\u1d40x); Brier = mean((p\u2212y)\u00b2); EV = pW\u2212(1\u2212p)L\u2212cost.",
+      "limitations": "No model trained, no accuracy/forecast available. LLM text cannot authorize simulator entries.",
+      "data_requirements": "Authorized sourced OHLCV; complete closed bars; observation timestamps; verified regular NSE calendar; instrument identity and adjustment basis.",
+      "intervals": [],
+      "validation": "Not validated on NSE. No held-out accuracy or profit claimed."
+    }
+  ],
+  "sources": [
+    {
+      "id": "Q1",
+      "title": "EMA9 crossing VWAP: costs and holdout",
+      "url": "https://kruegeralgorithms.com/en/research/ema9-vwap-cross-index-cfds-costs-eat-the-edge",
+      "evidence": "Original author reviewed; no confirmed net edge. Index CFD results do not establish NSE profitability."
+    },
+    {
+      "id": "Q2",
+      "title": "OU mean reversion on point-in-time US stocks",
+      "url": "https://quanterlab.com/research/ornstein-uhlenbeck-mean-reversion-process-applied-on-s-p-500-point-in-time",
+      "evidence": "Original author reviewed; daily US evidence with execution/selection limitations, no NSE intraday replication."
+    },
+    {
+      "id": "Q3",
+      "title": "HMM versus VIX regime detection",
+      "url": "https://quanterlab.com/research/hidden-markov-model-against-the-vix-on-a-regime-aware-factor-portfolio",
+      "evidence": "Original author reviewed; advantage not statistically decisive."
+    },
+    {
+      "id": "Q4",
+      "title": "Squeeze versus volatility clustering",
+      "url": "https://quanterlab.com/research/the-calm-before-more-calm-the-ttm-squeeze-the-bollinger-squeeze-and-volatility",
+      "evidence": "Original author reviewed; no reliable breakout advantage established."
+    },
+    {
+      "id": "Q5",
+      "title": "Corrected volatility momentum/fade experiment",
+      "url": "https://kruegeralgorithms.com/en/research/volatility-regime-momentum-vs-fade",
+      "evidence": "Original author reviewed; earlier results corrected for simulator bias, candidate failed holdout."
+    },
+    {
+      "id": "S1",
+      "title": "Opening range breakout replication",
+      "url": "https://www.quantconnect.com/research/18444/opening-range-breakout-for-stocks-in-play/",
+      "evidence": "Supplementary original replication; not discovered through a verified Quantocracy link. US one-year example; not our replication."
+    },
+    {
+      "id": "F1",
+      "title": "Zerodha charges",
+      "url": "https://zerodha.com/charges/",
+      "evidence": "Broker tariff source checked 30 October 2026; retain effective-date snapshots."
+    },
+    {
+      "id": "C1",
+      "title": "NSE market timings",
+      "url": "https://www.nseindia.com/static/market-data/market-timings",
+      "evidence": "Regular session reference; holidays and special sessions require dated exchange circulars."
+    }
+  ],
+  "categories": [
+    "Intraday momentum and trend-following",
+    "Mean reversion and statistical arbitrage",
+    "Opening range breakout and price action",
+    "VWAP-based trading",
+    "Volatility and volatility compression",
+    "Market microstructure, order flow, and liquidity",
+    "Intraday seasonality and market regimes",
+    "Machine learning and forecasting",
+    "Mathematical and statistical models",
+    "Risk management and position sizing",
+    "Portfolio optimization",
+    "Execution and transaction-cost modeling",
+    "Backtesting, validation, and overfitting prevention",
+    "Multi-strategy selection and signal aggregation"
+  ],
+  "coverage": {
+    "advertised_pages": 156,
+    "status": "Archive review incomplete: 156 pages advertised; only pages 1, 2 and 156 are verified in the saved coverage record.",
+    "article_review": "Selected original sources only; indexing is not methodology review."
+  },
+  "safety": [
+    "No new candidate is activated in the automatic paper ledger.",
+    "Offline comparisons use isolated capital, not a combined portfolio.",
+    "No real order execution or broker order client.",
+    "No synthetic quotes, calibrated confidence, or profit forecasts."
+  ],
+  "documents": [
+    {
+      "key": "formulas",
+      "title": "Formulas & evidence"
+    },
+    {
+      "key": "architecture",
+      "title": "Paper-trading architecture"
+    },
+    {
+      "key": "coverage",
+      "title": "Research coverage"
+    }
+  ]
+}

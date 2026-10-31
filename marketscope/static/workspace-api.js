@@ -115,7 +115,7 @@ export function normalizeStock(stock = {}, context = {}) {
     volume: finite(stock.volume),
     previous_close: finite(stock.previous_close),
     session_open: finite(stock.session_open),
-    updated_at: timestampSeconds(stock.updated_at),
+    updated_at: timestampSeconds(stock.quote_timestamp ?? stock.updated_at),
     candles,
     trajectory: Array.isArray(suppliedPoints) ? suppliedPoints.map(finite) : [],
     metrics: normalizeMetrics(stock.metrics, stock),
@@ -123,7 +123,7 @@ export function normalizeStock(stock = {}, context = {}) {
     setup: normalizeSetup(stock.setup ?? stock.ai_decision),
     confirmed_setup: normalizeSetup(stock.confirmed_setup),
     confirmation_independent: false,
-    source: historical ? 'archive' : 'public',
+    source: historical ? 'archive' : stock.source ?? 'public',
     source_label: context.data_source ?? stock.source ?? (historical ? 'Real session candle archive' : 'Yahoo Finance exchange candles'),
     delayed: true,
     historical,
@@ -132,7 +132,7 @@ export function normalizeStock(stock = {}, context = {}) {
     signal_eligible: false,
     session_state: sessionState,
     session_date: context.session_date ?? stock.session_date ?? null,
-    comparison: { reason: 'This server supplies one public candle route and its stored session archive.' },
+    comparison: { reason: stock.source === 'FYERS' ? 'Authenticated FYERS REST polling; quote age is checked server-side.' : 'Provider candles and stored session archive; independent source comparison unavailable.' },
   };
 }
 
@@ -151,7 +151,7 @@ export function normalizeConfig(config = {}, catalogue = {}) {
     refresh_ms: Math.max(3000, finite(config.refresh_interval_ms ?? config.refresh_ms) ?? 3000),
     universe: Array.isArray(config.monitored_symbols) ? [...config.monitored_symbols] : Object.keys(catalogue),
     features: { flow: true, sectors: true },
-    navigation: ['overview', 'scanner', 'watchlist', 'methodology', 'admin'],
+    navigation: ['overview', 'scanner', 'watchlist', 'paperwatch', 'paper-report', 'paper', 'research', 'methodology', 'admin'],
     formula_version: 'legacy',
     score_weights: {
       trend: finite(config.weight_trend) ?? 35,
@@ -225,7 +225,7 @@ export function toBackendConfig(patch = {}) {
   return mapped;
 }
 
-const SUPPORTED_ROUTES = new Set(['/api/bootstrap', '/api/market', '/api/stock', '/api/historical/symbols', '/api/historical/candles', '/api/health', '/api/admin', '/api/admin/audit-logs', '/api/config/history', '/api/config/preview', '/api/session/preview', '/api/config', '/api/backup/status', '/api/backup', '/api/ai/status', '/api/ai/pulse', '/api/ai/analyze', '/api/ai/chat', '/api/stocks/database', '/api/stocks/quote', '/api/stocks/track', '/api/stocks/untrack', '/api/market/schedule', '/api/signals/stats', '/api/session/summary', '/api/flow', '/api/login', '/api/logout', '/api/metrics']);
+const SUPPORTED_ROUTES = new Set(['/api/research/strategies', '/api/paper-watchlist', '/api/paper-watchlist/report', '/api/paper/status', '/api/paper/control', '/api/bootstrap', '/api/market', '/api/stock', '/api/historical/symbols', '/api/historical/candles', '/api/health', '/api/admin', '/api/admin/audit-logs', '/api/config/history', '/api/config/preview', '/api/session/preview', '/api/config', '/api/backup/status', '/api/backup', '/api/ai/status', '/api/ai/pulse', '/api/ai/analyze', '/api/ai/chat', '/api/stocks/database', '/api/stocks/quote', '/api/stocks/track', '/api/stocks/untrack', '/api/market/schedule', '/api/signals/stats', '/api/session/summary', '/api/flow', '/api/login', '/api/logout', '/api/metrics']);
 
 export function createWorkspaceAPI(getState = () => ({}), { fetchImpl = globalThis.fetch, onUnauthorized = () => {} } = {}) {
   return async function request(path, { method = 'GET', body, signal } = {}) {
@@ -238,16 +238,23 @@ export function createWorkspaceAPI(getState = () => ({}), { fetchImpl = globalTh
     const requestedSource = url.searchParams.get('source') ?? 'public';
     if (!['live', 'auto', 'previous'].includes(requestedMode)) throw new Error('Choose the current feed or a stored previous session.');
     if (!['public', 'auto'].includes(requestedSource)) throw new Error('This server provides public exchange candles and stored sessions. Broker routes and source comparison are unavailable.');
-    if (requestedMode === 'previous' && ['/api/ai/analyze', '/api/ai/pulse', '/api/ai/chat'].includes(url.pathname)) {
+    if (requestedMode === 'previous' && url.pathname === '/api/ai/pulse') {
       throw new Error('Historical AI requests cannot select a session date on this server. Return to the automatic session to request a briefing.');
     }
-    url.searchParams.delete('mode');
+    if (url.pathname !== '/api/ai/analyze') url.searchParams.delete('mode');
     url.searchParams.delete('source');
     if (url.pathname === '/api/market' && requestedMode === 'previous') url.searchParams.set('session', 'previous');
     let outgoing = body;
     if (url.pathname === '/api/login' && body) outgoing = { email: body.email, password: body.password, totp_code: body.totp_code ?? body.code ?? '' };
     if (url.pathname === '/api/config' || url.pathname === '/api/config/preview' || url.pathname === '/api/session/preview') outgoing = toBackendConfig(body);
-    if (url.pathname === '/api/ai/chat' && body) outgoing = { message: body.message, symbol: body.symbol ?? null };
+    if (url.pathname === '/api/ai/chat' && body) outgoing = {
+      message: body.message,
+      symbol: body.symbol ?? null,
+      timeframe: body.timeframe,
+      mode: body.mode ?? requestedMode,
+      history: body.history,
+      watchlist: body.watchlist,
+    };
     const headers = { Accept: 'application/json' };
     if (outgoing !== undefined) headers['Content-Type'] = 'application/json';
     if (state.csrf || state.csrfToken) headers['X-CSRF-Token'] = state.csrf ?? state.csrfToken;

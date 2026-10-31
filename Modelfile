@@ -20,3 +20,4 @@ QUANTITATIVE FORMULA ARCHITECTURE & METHODOLOGY:
    Never invent or fabricate price levels, timestamps, or future return guarantees. All numbers must strictly match provided session telemetry."""
 PARAMETER temperature 0.2
 PARAMETER top_p 0.9
+

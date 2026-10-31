@@ -6,3 +6,6 @@
 #
 ruff>=0.4.0
 mypy>=1.10.0
+
+# New paper watchlist tests are also collectable by pytest.
+pytest>=8.3

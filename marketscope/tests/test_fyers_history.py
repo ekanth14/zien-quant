@@ -140,7 +140,10 @@ class TestFyersServerEndpoints(unittest.TestCase):
         self.handler._send_json = mock_send_json
 
     def test_historical_symbols_endpoint(self):
-        with patch.object(FyersHistoryProvider, "search_instruments", return_value={"instruments": [{"symbol": "NSE:TCS-EQ"}]}):
+        # Patch the handler's dependency; package and script imports can load
+        # distinct provider classes after the owner's import-path fix.
+        with patch("marketscope.server.get_fyers_history_provider") as provider:
+            provider.return_value.search_instruments.return_value = {"instruments": [{"symbol": "NSE:TCS-EQ"}]}
             self.handler._handle_historical_symbols({"q": ["TCS"]})
             self.assertEqual(self.status_code[0], 200)
             self.assertEqual(self.sent["instruments"][0]["symbol"], "NSE:TCS-EQ")
@@ -159,3 +162,4 @@ class TestFyersServerEndpoints(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+

@@ -32,25 +32,26 @@ class CandleArchive:
 
     def _init_db(self) -> None:
         os.makedirs(os.path.dirname(os.path.abspath(self.db_path)), exist_ok=True)
-        with self._get_connection() as conn:
-            conn.execute("""
-                CREATE TABLE IF NOT EXISTS candles (
-                    symbol TEXT NOT NULL,
-                    timeframe INTEGER NOT NULL,
-                    ts INTEGER NOT NULL,
-                    o REAL NOT NULL,
-                    h REAL NOT NULL,
-                    l REAL NOT NULL,
-                    c REAL NOT NULL,
-                    v REAL NOT NULL,
-                    source TEXT NOT NULL,
-                    PRIMARY KEY (symbol, timeframe, ts)
-                );
-            """)
-            conn.execute("""
-                CREATE INDEX IF NOT EXISTS idx_candles_symbol_tf_ts 
-                ON candles (symbol, timeframe, ts);
-            """)
+        with closing(self._get_connection()) as conn:
+            with conn:
+                conn.execute("""
+                    CREATE TABLE IF NOT EXISTS candles (
+                        symbol TEXT NOT NULL,
+                        timeframe INTEGER NOT NULL,
+                        ts INTEGER NOT NULL,
+                        o REAL NOT NULL,
+                        h REAL NOT NULL,
+                        l REAL NOT NULL,
+                        c REAL NOT NULL,
+                        v REAL NOT NULL,
+                        source TEXT NOT NULL,
+                        PRIMARY KEY (symbol, timeframe, ts)
+                    );
+                """)
+                conn.execute("""
+                    CREATE INDEX IF NOT EXISTS idx_candles_symbol_tf_ts 
+                    ON candles (symbol, timeframe, ts);
+                """)
 
     def archive_closed_candles(
         self,
@@ -80,34 +81,38 @@ class CandleArchive:
             if ts_int <= 0:
                 continue
 
-            o = float(c.get("o", c.get("open", 0.0)))
-            h = float(c.get("h", c.get("high", 0.0)))
-            l = float(c.get("l", c.get("low", 0.0)))
-            close_val = float(c.get("c", c.get("close", 0.0)))
-            v = float(c.get("v", c.get("volume", 0.0)))
+            try:
+                raw = [c.get(k, c.get(alias)) for k,alias in [('o','open'),('h','high'),('l','low'),('c','close'),('v','volume')]]
+                if any(isinstance(value,bool) for value in raw): continue
+                o,h,l,close_val,v = map(float,raw)
+                if not all(math.isfinite(value) for value in (o,h,l,close_val,v)): continue
+                if min(o,h,l,close_val)<=0 or v<0 or not l<=min(o,close_val)<=max(o,close_val)<=h: continue
+            except (ValueError,TypeError,OverflowError):
+                continue
 
             rows.append((symbol.upper(), int(timeframe), ts_int, o, h, l, close_val, v, source))
 
         if not rows:
             return 0
 
-        with self._get_connection() as conn:
-            conn.executemany("""
-                INSERT INTO candles (symbol, timeframe, ts, o, h, l, c, v, source)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-                ON CONFLICT(symbol, timeframe, ts) DO UPDATE SET
-                    o = excluded.o,
-                    h = excluded.h,
-                    l = excluded.l,
-                    c = excluded.c,
-                    v = excluded.v,
-                    source = excluded.source;
-            """, rows)
+        with closing(self._get_connection()) as conn:
+            with conn:
+                conn.executemany("""
+                    INSERT INTO candles (symbol, timeframe, ts, o, h, l, c, v, source)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    ON CONFLICT(symbol, timeframe, ts) DO UPDATE SET
+                        o = excluded.o,
+                        h = excluded.h,
+                        l = excluded.l,
+                        c = excluded.c,
+                        v = excluded.v,
+                        source = excluded.source;
+                """, rows)
             return len(rows)
 
     def get_prior_session_close(self, symbol: str, timeframe: int, before_ts: int) -> Optional[float]:
         """Returns the close of the most recent candle prior to before_ts (>= 2024-01-01)."""
-        with self._get_connection() as conn:
+        with closing(self._get_connection()) as conn:
             cur = conn.cursor()
             cur.execute("""
                 SELECT c FROM candles
@@ -200,7 +205,7 @@ class CandleArchive:
         }
 
     def get_stats(self) -> List[Dict[str, Any]]:
-        with self._get_connection() as conn:
+        with closing(self._get_connection()) as conn:
             cur = conn.cursor()
             cur.execute("""
                 SELECT symbol, timeframe, count(*) as count, min(ts) as min_ts, max(ts) as max_ts
@@ -212,7 +217,7 @@ class CandleArchive:
 
     def get_latest_session_date(self) -> Optional[str]:
         """Returns the latest session date (YYYY-MM-DD in IST) found in archived candles."""
-        with self._get_connection() as conn:
+        with closing(self._get_connection()) as conn:
             cur = conn.cursor()
             cur.execute("SELECT max(ts) as max_ts FROM candles WHERE ts > 0")
             row = cur.fetchone()
@@ -247,7 +252,7 @@ class CandleArchive:
         start_ts = max(int(start_dt.timestamp()), 1704067200)
         end_ts = int(end_dt.timestamp())
 
-        with self._get_connection() as conn:
+        with closing(self._get_connection()) as conn:
             cur = conn.cursor()
             cur.execute(
                 """
@@ -280,3 +285,4 @@ def get_candle_archive() -> CandleArchive:
     if _archive_instance is None:
         _archive_instance = CandleArchive()
     return _archive_instance
+

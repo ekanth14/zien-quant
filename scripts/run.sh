@@ -8,8 +8,11 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(dirname "$SCRIPT_DIR")"
 cd "$ROOT_DIR"
 
-PYTHON_CMD="python3"
-if ! command -v python3 >/dev/null 2>&1; then
+PYTHON_CMD="python3.12"
+if ! command -v python3.12 >/dev/null 2>&1; then
+    PYTHON_CMD="python3"
+fi
+if ! command -v "$PYTHON_CMD" >/dev/null 2>&1; then
     PYTHON_CMD="python"
 fi
 

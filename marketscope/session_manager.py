@@ -269,6 +269,7 @@ def build_session_snapshot(
     scraper_feed: Optional[RealTimeScraperFeed] = None,
     db_manager: Optional[DatabaseManager] = None,
     config: Optional[Dict[str, Any]] = None,
+    allow_remote_fallback: bool = True,
 ) -> Dict[str, Any]:
     if not isinstance(session_date, str) or len(session_date) != 10:
         session_date = "2026-10-23" 
@@ -325,7 +326,7 @@ def build_session_snapshot(
         candles = archive.get_candles_for_session(sym, timeframe, session_date)
 
         # If candles.db doesn't have sufficient bars, fetch from Yahoo with range='5d'
-        if len(candles) < 20:
+        if len(candles) < 20 and allow_remote_fallback:
             data_source = "Exchange Live Feed (Yahoo Finance)"
             try:
                 res = scraper.scrape_stock_candles(sym, timeframe=timeframe)

@@ -356,3 +356,4 @@ class DatabaseManager:
                 )
         finally:
             conn.close()
+

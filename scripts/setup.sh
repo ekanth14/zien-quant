@@ -12,7 +12,9 @@ echo "=== Zien Quant - Environment Setup ==="
 
 # 1. Check Python version >= 3.12
 PYTHON_CMD=""
-if command -v python3 >/dev/null 2>&1; then
+if command -v python3.12 >/dev/null 2>&1; then
+    PYTHON_CMD="python3.12"
+elif command -v python3 >/dev/null 2>&1; then
     PYTHON_CMD="python3"
 elif command -v python >/dev/null 2>&1; then
     PYTHON_CMD="python"

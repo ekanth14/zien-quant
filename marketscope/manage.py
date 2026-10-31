@@ -397,6 +397,22 @@ def main() -> None:
     subparsers.add_parser("candle-stats", help="Show candle archive row counts and date ranges")
     subparsers.add_parser("doctor", help="Run comprehensive health and diagnostic check")
     subparsers.add_parser("check-ollama", help="Check Ollama reachability and model availability")
+    subparsers.add_parser("results-status", help="Show financial-results collection and history coverage")
+    subparsers.add_parser("results-refresh", help="Collect one bounded batch of official results and market history")
+    subparsers.add_parser("margins-status", help="Show Zerodha MIS reference freshness and strict-above-3x coverage")
+    subparsers.add_parser("margins-refresh", help="Refresh Zerodha's published equity intraday margin list")
+    filings_import = subparsers.add_parser("results-import-filings", help="Import an official NSE financial-filings CSV or JSON export")
+    filings_import.add_argument("file", help="Downloaded official filing metadata export")
+    filings_import.add_argument("--source", default="https://www.nseindia.com/companies-listing/corporate-filings-financial-results", help="Official NSE source page URL")
+    results_backfill = subparsers.add_parser("results-backfill", help="Collect resumable historical announcement batches independently of today's feed")
+    results_backfill.add_argument("--from", dest="date_from", help="First publication date, YYYY-MM-DD")
+    results_backfill.add_argument("--to", dest="date_to", help="Last publication date, YYYY-MM-DD")
+    results_backfill.add_argument("--batches", type=int, default=12, help="Maximum 30-day batches this run")
+    results_backfill.add_argument("--enrich", action="store_true", help="Also process one bounded batch of financial documents")
+    results_import = subparsers.add_parser("results-import-candles", help="Import a real, sourced historical candle CSV for earnings research")
+    results_import.add_argument("csv", help="CSV with symbol,t,o,h,l,c,v headers")
+    results_import.add_argument("--source", required=True, help="Origin of the observations, such as your historical data provider")
+    results_import.add_argument("--timeframe", type=int, choices=(5, 1440), default=5)
 
     import_parser = subparsers.add_parser("import-stock-master", help="Import equity master database from CSV or seed defaults")
     import_parser.add_argument("csv", nargs="?", default=None, help="Path to NSE/BSE master CSV (optional)")
@@ -416,6 +432,53 @@ def main() -> None:
         cmd_doctor(args)
     elif args.command == "check-ollama":
         cmd_check_ollama(args)
+    elif args.command in ("results-status", "results-refresh"):
+        from results_service import get_results_service
+        service = get_results_service()
+        if args.command == "results-refresh":
+            service.refresh()
+        print(json.dumps(service.status(), indent=2, default=str))
+    elif args.command in ("margins-status", "margins-refresh"):
+        from intraday_margins import get_intraday_margins
+        service = get_intraday_margins()
+        payload = service.refresh() if args.command == "margins-refresh" else service.payload()
+        print(json.dumps({key: value for key, value in payload.items() if key != "records"}, indent=2, default=str))
+    elif args.command == "results-import-filings":
+        from results_service import get_results_service
+        try:
+            source_file = Path(args.file)
+            if source_file.stat().st_size > 100_000_000:
+                raise ValueError("The export exceeds 100 MB.")
+            with source_file.open(encoding="utf-8-sig", newline="") as stream:
+                if source_file.suffix.lower() == ".csv":
+                    import csv
+                    rows = list(csv.DictReader(stream))
+                else:
+                    rows = json.load(stream)
+                    if isinstance(rows, dict):
+                        rows = rows.get("data")
+            result = get_results_service().import_filings(rows, source_url=args.source)
+        except (ValueError, OSError) as exc:
+            print(f"Import rejected: {exc}", file=sys.stderr)
+            sys.exit(1)
+        print(json.dumps(result, indent=2, default=str))
+    elif args.command == "results-backfill":
+        from results_service import get_results_service
+        try:
+            result = get_results_service().backfill(max_batches=args.batches, date_from=args.date_from, date_to=args.date_to, enrich=args.enrich)
+        except (ValueError, OSError) as exc:
+            print(f"Backfill could not start: {exc}", file=sys.stderr)
+            sys.exit(1)
+        print(json.dumps(result, indent=2, default=str))
+    elif args.command == "results-import-candles":
+        from candle_archive import get_candle_archive
+        from results_history import import_candle_csv
+        try:
+            result = import_candle_csv(args.csv, get_candle_archive(), source=args.source, timeframe=args.timeframe)
+        except (ValueError, OSError) as exc:
+            print(f"Import rejected: {exc}", file=sys.stderr)
+            sys.exit(1)
+        print(json.dumps(result, indent=2))
     elif args.command == "import-stock-master":
         cmd_import_stock_master(args)
     else:

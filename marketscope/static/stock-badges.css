@@ -1,0 +1,12 @@
+/* Published broker leverage badge; separate from watchlist controls. */
+.zerodha-margin-leverage{display:inline-block;vertical-align:.08em;margin-inline-start:4px;padding:2px 4px;border:1px solid #f3c86a55;border-radius:999px;background:#f3c86a12;color:#f3c86a;font-size:8px;line-height:1;flex:0 0 auto;white-space:nowrap;filter:drop-shadow(0 0 3px #f3c86a20);font-style:normal;font-weight:700;letter-spacing:.01em}
+svg .zerodha-margin-leverage{fill:#f3c86a;font-size:8px;font-weight:700;stroke:none;filter:none}
+.zerodha-margin-legend{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:10px;line-height:1.6;color:#8b9aaf;padding:7px 0}
+.zerodha-margin-legend a{color:inherit;text-decoration:none;display:inline-flex;align-items:center;gap:5px}
+.zerodha-margin-legend a:hover,.zerodha-margin-legend a:focus-visible{color:#f3c86a;text-decoration:underline}
+.zerodha-margin-legend small{font-size:9px;color:inherit;opacity:.8}
+.zerodha-legend-value{padding:2px 4px;border:1px solid #f3c86a55;border-radius:999px;background:#f3c86a12;color:#f3c86a;font-size:9px;font-weight:700;line-height:1}
+@media(prefers-reduced-motion:reduce){.zerodha-margin-leverage{transition:none;animation:none}}
+.zerodha-margin-legend{position:fixed;right:12px;bottom:28px;z-index:120;max-width:min(320px,calc(100vw - 24px));padding:5px 9px;border:1px solid #f3c86a33;border-radius:6px;background:color-mix(in srgb,#0b1220 94%,transparent);box-shadow:0 4px 18px #0007;backdrop-filter:blur(10px);font-size:10px}
+.zerodha-margin-legend small{font-size:9px}
+@media(max-width:600px){.zerodha-margin-legend{right:8px;bottom:10px;max-width:calc(100vw - 16px);gap:3px 8px;font-size:9px}.zerodha-margin-legend small{font-size:8px}}

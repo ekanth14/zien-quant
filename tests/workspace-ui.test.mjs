@@ -5,11 +5,14 @@ import vm from 'node:vm';
 import { parseHTML } from 'linkedom';
 
 const staticRoot = new URL('../marketscope/static/', import.meta.url);
-const [html, controller, adapter, historicalChart, fixture] = await Promise.all([
+const [html, controller, adapter, historicalChart, paperTrading, paperWatchlist, quantResearch, fixture] = await Promise.all([
   readFile(new URL('workspace.html', staticRoot), 'utf8'),
   readFile(new URL('workspace.js', staticRoot), 'utf8'),
   readFile(new URL('workspace-api.js', staticRoot), 'utf8'),
   readFile(new URL('historical-chart.js', staticRoot), 'utf8'),
+  readFile(new URL('paper-trading.js', staticRoot), 'utf8'),
+  readFile(new URL('paper-watchlist.js', staticRoot), 'utf8'),
+  readFile(new URL('quant-research.js', staticRoot), 'utf8'),
   readFile(new URL('../marketscope/tests/fixtures/session_fixtures.json', import.meta.url), 'utf8').then(JSON.parse),
 ]);
 
@@ -75,6 +78,7 @@ async function workspace({ offline = false, candlesUnavailable = false, sessionS
         if(loginMfa&&body.totp_code!=='123456')return response({error:'invalid_mfa',detail:'Invalid test code',requires_mfa:true},401);
         signedIn=true;return response({success:true,csrf_token:'test-csrf-token'});
       }
+      case '/api/ai/chat': return response({reply:'Test-only model response',source:'local_llm',backend:'ollama',model:'fixture'});
       case '/api/logout': signedIn=false;return response({success:true});
       case '/api/market': return offline ? response({ error: 'feed_unavailable', detail: 'The received feed is offline.' }, 503) : response({ mode: 'live', data_mode: sessionState === 'LIVE' ? 'LIVE' : 'PREVIOUS_SESSION', session_state: sessionState, session_date: fixture.session_date, timeframe: Number(url.searchParams.get('timeframe')), stocks: rawStocks, daily_ranking: dailyRanking, trajectories: [{ symbol: 'RELIANCE', points: trajectoryGap ? [0, .3, null, 1.4] : [0, .3, .7, 1.4] }, { symbol: 'TCS', points: [0, -.2, -.7, -1.2] }] });
       case '/api/market/schedule': return response({ state: 'CLOSED', action: 'opens', target_timestamp: 1792986300, target_time_ist: '2026-10-26 09:15 IST' });
@@ -84,22 +88,28 @@ async function workspace({ offline = false, candlesUnavailable = false, sessionS
     }
   };
   const context = vm.createContext({
-    document, window, console, URL, Intl, Date, Math, Map, Set, JSON, Number,
+    document, window, console, URL, Intl, Date, Math, Map, Set, JSON, Number, AbortController,
     fetch, innerWidth: 1440, innerHeight: 1000,
     location: { hash: '', search: '', href: 'http://workspace.test/' },
     history: { replaceState: () => {} },
     localStorage: { getItem: key => storage.get(key) ?? null, setItem: (key, value) => storage.set(key, value) },
     matchMedia: () => ({ matches: true }),
     CSS: { escape: value => String(value).replace(/[&]/g, '\\&') },
-    setTimeout: () => 1, clearTimeout: () => {}, setInterval: () => 1,
+    setTimeout: () => 1, clearTimeout: () => {}, setInterval: () => 1, clearInterval:()=>{},
     requestAnimationFrame: () => {},
     ResizeObserver: class { observe() {} unobserve() {} disconnect() {} },
   });
+  const researchModule = new vm.SourceTextModule(quantResearch, { context, identifier: 'quant-research.js' });
   const chartModule = new vm.SourceTextModule(historicalChart, { context, identifier: 'historical-chart.js' });
+  const watchModule = new vm.SourceTextModule(paperWatchlist, { context, identifier: 'paper-watchlist.js' });
+  const paperModule = new vm.SourceTextModule(paperTrading, { context, identifier: 'paper-trading.js' });
   const apiModule = new vm.SourceTextModule(adapter, { context, identifier: 'workspace-api.js' });
-  const uiModule = new vm.SourceTextModule(controller + '\nexport {state,refresh,navigate,setMode,setTimeframe,openDetail,hydrateStock,localBrief};', { context, identifier: 'workspace.js' });
+  const uiModule = new vm.SourceTextModule(controller + '\nexport {state,refresh,navigate,setMode,setTimeframe,openDetail,hydrateStock,localBrief,sendAiMessage};', { context, identifier: 'workspace.js' });
   await uiModule.link(async specifier => {
     if (specifier === './historical-chart.js') return chartModule;
+    if (specifier === './paper-trading.js') return paperModule;
+    if (specifier === './quant-research.js') return researchModule;
+    if (specifier === './paper-watchlist.js') return watchModule;
     assert.equal(specifier, './workspace-api.js');
     return apiModule;
   });
@@ -119,6 +129,43 @@ test('reference layout boots against the current backend contract with risk-qual
   assert.equal(document.getElementById('riverMode').getAttribute('href'), '/flow');
   assert.equal(ui.state.data.session_date, fixture.session_date);
   assert.ok(!/NaN|undefined/.test(document.getElementById('mainContent').innerHTML), 'Rendered overview must contain no missing values or invalid SVG coordinates');
+});
+
+test('workspace groups tasks, prioritizes the selected chart and keeps secondary context accessible',async()=>{
+ const {document,ui}=await workspace();
+ const groups=[...document.querySelectorAll('#navigation .nav-label')].map(e=>e.textContent);
+ assert.deepEqual(groups,['MARKETS','SIMULATION & RESULTS','RESEARCH']);
+ assert.equal(document.querySelector('#navigation [aria-current="page"]').dataset.view,'overview');
+ const content=document.querySelector('#mainContent');
+ assert.ok(content.innerHTML.indexOf('mainChartPanel')<content.innerHTML.indexOf('dailyFormulaPanel'));
+ assert.ok(content.innerHTML.indexOf('dailyFormulaPanel')<content.innerHTML.indexOf('signalTerminal'));
+ assert.equal(document.querySelector('#sessionContextDisclosure').hasAttribute('open'),false);
+ assert.ok(document.querySelector('#sessionContextDisclosure [data-margin-legend]'));
+ assert.equal(document.querySelector('[data-overlay="vwap"]').getAttribute('aria-pressed'),'true');
+ ui.navigate('research');
+ assert.equal(document.body.dataset.view,'research');
+ assert.equal(document.querySelector('#navigation [aria-current="page"]').dataset.view,'research');
+});
+
+test('mobile navigation has synchronized open state, backdrop and Escape dismissal',async()=>{
+ const {document}=await workspace();const menu=document.querySelector('#mobileMenu');
+ menu.onclick();assert.equal(menu.getAttribute('aria-expanded'),'true');
+ assert.equal(document.querySelector('#navigationBackdrop').hidden,false);
+ const tab=new document.defaultView.Event('keydown',{bubbles:true});Object.assign(tab,{key:'Tab'});document.dispatchEvent(tab);
+ const event=new document.defaultView.Event('keydown',{bubbles:true});Object.assign(event,{key:'Escape'});document.dispatchEvent(event);
+ assert.equal(menu.getAttribute('aria-expanded'),'false');
+ assert.equal(document.querySelector('#navigationBackdrop').hidden,true);
+ menu.onclick();document.querySelector('#navigationBackdrop').onclick();
+ assert.equal(document.body.classList.contains('menu-open'),false);
+});
+
+test('scanner labels and result counts follow the existing filters',async()=>{
+ const {document,ui}=await workspace();ui.navigate('scanner');
+ assert.match(document.querySelector('#scannerResultCount').textContent,/2 of 2 stocks shown/);
+ assert.match(document.querySelector('#stockFilter').closest('label').textContent,/Find a stock/);
+ const input=document.querySelector('#stockFilter');input.value='TCS';input.oninput({target:input});
+ assert.match(document.querySelector('#scannerResultCount').textContent,/1 of 2 stocks shown/);
+ assert.ok(document.querySelector('#scannerCatalogue'));
 });
 
 test('scanner search, local watchlist, detail chart and historical explanations interact correctly', async () => {
@@ -260,4 +307,35 @@ test('scanner sorts unknown percentage changes last and sector averages keep the
  document.getElementById('sortFilter').onchange({target:{value:'change'}});
  assert.equal(document.querySelector('[data-card]').dataset.card,'TCS');
  assert.match(document.querySelector('[data-card="RELIANCE"]').textContent,/—/);
+});
+
+
+test('paper lab remains reachable inside dashboard when market feed is offline', async () => {
+  const {document,ui}=await workspace({offline:true});
+  ui.navigate('paper');
+  for(let i=0;i<12;i++)await Promise.resolve();
+  assert.match(document.querySelector('#mainContent').textContent,/VIRTUAL DESK/);
+  assert.match(document.querySelector('#mainContent').textContent,/Connection error/);
+  assert.equal(document.querySelector('#paperStart').disabled,true);
+  ui.navigate('methodology');
+  assert.equal(document.querySelector('#paperState'),null);
+});
+
+
+test('signed-in stored-session chat reaches model with context; visitors remain rules-only',async()=>{
+ const {document,ui,requests}=await workspace({ownerExists:true});
+ await ui.sendAiMessage('Explain VWAP');
+ assert.equal(requests.filter(r=>r.path==='/api/ai/chat').length,0);
+ document.getElementById('account').onclick();
+ const form=document.getElementById('loginForm');
+ form.querySelector('[name=email]').value='owner@example.test';
+ form.querySelector('[name=password]').value='test-only-password';
+ await form.onsubmit({preventDefault(){}});
+ await ui.sendAiMessage('Explain VWAP after hours');
+ const req=requests.find(r=>r.path==='/api/ai/chat');assert.ok(req);
+ const body=JSON.parse(req.options.body);
+ assert.equal(body.timeframe,5);assert.equal(body.mode,ui.state.mode);
+ assert.deepEqual(body.watchlist,Array.from(ui.state.watch));
+ assert.ok(Array.isArray(body.history));
+ assert.equal(ui.state.aiMessages.at(-1).backend,'ollama',ui.state.aiMessages.at(-1).content);
 });

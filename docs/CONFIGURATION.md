@@ -45,3 +45,4 @@ Owner administrators can tune operational parameters at runtime via the Owner Se
 | `scraper.max_retries` | Integer | `3` | `1` - `10` | Maximum retries before a symbol request is marked failed. |
 | `scraper.circuit_breaker_trips` | Integer | `5` | `2` - `20` | Consecutive global failures required to trip the circuit breaker. |
 | `scraper.circuit_breaker_cooldown` | Integer | `60` | `10` - `300` | Seconds the circuit breaker remains open before attempting a probe. |
+

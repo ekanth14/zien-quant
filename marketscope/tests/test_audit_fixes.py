@@ -6,7 +6,7 @@
 - Welles Wilder smoothed RSI calculation against known mathematical series
 - Laya AI output validator (number matching, hallucination rejection, direction checks)
 - Asynchronous analysis queue (< 2s response even with 60s LLM delay)
-- Chat copilot HTTP 503 on LLM failure (no canned fallback)
+- Chat copilot deterministic retrieved-context fallback on LLM failure
 - Authentication matrix and 401/403 status enforcement on all gated endpoints
 - Symbol tracking input validation (regex, master db check, 100 max cap)
 - Signal journal deduplication and outcome tracking (same-candle conservative SL priority)
@@ -308,14 +308,19 @@ class TestLayaOutputValidatorAndAsync(unittest.TestCase):
         ok4, reason4 = validate_llm_output(text_rel, stock_rel)
         self.assertTrue(ok4, f"Expected valid bullish briefing to pass, got: {reason4}")
 
-    def test_chat_copilot_returns_error_when_llm_fails(self):
-        """Chat copilot must return error when LLM fails without canned fallback."""
+    def test_chat_copilot_labels_retrieved_context_when_llm_fails(self):
+        """Preserve the existing website-data fallback without claiming model output."""
         engine = LayaAIEngine()
         with patch.object(engine, "_call_ollama", return_value=None):
-            res = engine.chat_copilot("What is the trend?", current_symbol="RELIANCE")
-            self.assertIn("error", res)
-            self.assertEqual(res["error"], "llm_unavailable")
-            self.assertNotIn("canned", str(res))
+            res = engine.chat_copilot(
+                "What is the trend?", current_symbol="RELIANCE",
+                website_context="Trend unavailable: no verified source candles.",
+            )
+        self.assertEqual(res["source"], "website_context_fallback")
+        self.assertEqual(res["backend"], "rules")
+        self.assertIn("Trend unavailable: no verified source candles.", res["reply"])
+        self.assertNotIn("error", res)
+        self.assertNotIn("canned", str(res))
 
 
 class TestServerSecurityAuthAndRouting(unittest.TestCase):

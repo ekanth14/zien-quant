@@ -49,3 +49,4 @@ Development checks include Node DOM/API regression tests in CI. Trajectory gaps 
 - **Standard Library Zero-Pip Architecture**: Pure Python 3.12+ stdlib backend with zero third-party pip dependencies required for runtime.
 - **CLI & Diagnostic Suite**: Built-in CLI commands `init-owner`, `doctor`, `import-stock-master`, and `diagnose-scraper`.
 - **Automated Test Suite**: 128 comprehensive unit and integration tests covering security, algorithmic scoring, flow calculations, and session replay.
+
