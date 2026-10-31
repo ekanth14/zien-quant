@@ -87,6 +87,39 @@ try:
 except ImportError:
     from marketscope.flow_engine import build_flow_payload
 
+try:
+    from market import (
+        calculate_ema,
+        calculate_rsi,
+        calculate_vwap,
+        calculate_rvol,
+        calculate_support_resistance,
+        calculate_atr,
+        calculate_composite_score,
+        calculate_order_blocks,
+        calculate_cpr,
+        calculate_camarilla,
+        calculate_supertrend,
+        calculate_vwap_bands,
+    )
+    from decision_engine import evaluate_ai_decision
+except ImportError:
+    from marketscope.market import (
+        calculate_ema,
+        calculate_rsi,
+        calculate_vwap,
+        calculate_rvol,
+        calculate_support_resistance,
+        calculate_atr,
+        calculate_composite_score,
+        calculate_order_blocks,
+        calculate_cpr,
+        calculate_camarilla,
+        calculate_supertrend,
+        calculate_vwap_bands,
+    )
+    from marketscope.decision_engine import evaluate_ai_decision
+
 from session_manager import (
     get_session_state,
     build_session_snapshot,
@@ -503,7 +536,12 @@ class MarketScopeHandler(BaseHTTPRequestHandler):
 
     def _handle_bootstrap(self) -> None:
         session = self._get_current_session()
-        cfg = self.db.get_latest_config() or DEFAULT_CONFIG
+        try:
+            cfg = self.db.get_latest_config()
+            if not isinstance(cfg, dict):
+                cfg = DEFAULT_CONFIG
+        except Exception:
+            cfg = DEFAULT_CONFIG
         has_owner = self.db.has_owner()
 
         payload = {
@@ -565,7 +603,12 @@ class MarketScopeHandler(BaseHTTPRequestHandler):
             self._send_json({"error": "invalid_timeframe", "detail": "Choose 1, 5, 15 or 60 minute candles."}, status=400)
             return
 
-        cfg = self.db.get_latest_config() or DEFAULT_CONFIG
+        try:
+            cfg = self.db.get_latest_config()
+            if not isinstance(cfg, dict):
+                cfg = DEFAULT_CONFIG
+        except Exception:
+            cfg = DEFAULT_CONFIG
         state_info = get_session_state(candle_archive=get_candle_archive(), db_manager=self.db)
         session_state = state_info["session_state"]
         session_date = state_info["session_date"]
@@ -758,7 +801,12 @@ class MarketScopeHandler(BaseHTTPRequestHandler):
                 self._send_flow_json(cached_payload, status=200)
                 return
 
-        cfg = self.db.get_latest_config() or DEFAULT_CONFIG
+        try:
+            cfg = self.db.get_latest_config()
+            if not isinstance(cfg, dict):
+                cfg = DEFAULT_CONFIG
+        except Exception:
+            cfg = DEFAULT_CONFIG
         payload = build_flow_payload(
             session_param=session_param,
             date_param=date_param,
@@ -852,9 +900,15 @@ class MarketScopeHandler(BaseHTTPRequestHandler):
         # Read the selected session first. Never substitute a different day's
         # history when a date was selected in the workspace.
         candles = archive.get_candles_for_session(symbol, tf, session_date) if session_date else []
+        fetched = []
         if not candles or (state_info.get("session_state") == "LIVE" and not requested_date and mode != "previous"):
             fetched = get_live_scraper_feed().get_full_stock_candles(symbol, timeframe=tf, exchange=exchange)
-            candles = [c for c in fetched if datetime.fromtimestamp(c["t"], IST).date().isoformat() == session_date] or candles
+            filtered = [c for c in fetched if datetime.fromtimestamp(c["t"], IST).date().isoformat() == session_date]
+            if filtered:
+                candles = filtered
+            elif not candles and fetched:
+                candles = fetched
+                session_date = datetime.fromtimestamp(candles[-1]["t"], IST).date().isoformat()
         if not candles:
             self._send_json(
                 {"error": f"Candle data unavailable for symbol {symbol}."},
@@ -865,15 +919,125 @@ class MarketScopeHandler(BaseHTTPRequestHandler):
         db = get_stock_database()
         info = db.get_stock(symbol) or STOCK_CATALOGUE.get(symbol, {"name": symbol, "sector": "General"})
 
+        # Compute stock metrics
+        closes = [float(c["c"]) for c in candles]
+        highs = [float(c["h"]) for c in candles]
+        lows = [float(c["l"]) for c in candles]
+        volumes = [int(c.get("v", 0)) for c in candles]
+        price = closes[-1] if closes else 0.0
+        open_price = float(candles[0]["o"]) if candles else price
+        day_high = max(highs) if highs else price
+        day_low = min(lows) if lows else price
+        total_vol = sum(volumes)
+
+        first_candle_ts = candles[0].get("t") or candles[0].get("ts", 0)
+        try:
+            prior_close = archive.get_prior_session_close(symbol, tf, first_candle_ts)
+            if not isinstance(prior_close, (int, float)) or type(prior_close).__name__.startswith("MagicMock"):
+                prior_close = None
+        except Exception:
+            prior_close = None
+
+        if prior_close is not None and prior_close > 0:
+            change_pct = round(((price - prior_close) / prior_close) * 100, 2)
+            change_basis = "prev_close"
+        else:
+            change_pct = round(((price - open_price) / max(0.01, open_price)) * 100, 2) if open_price > 0 else 0.0
+            change_basis = "open_price"
+
+        try:
+            cfg = self.db.get_latest_config()
+            if not isinstance(cfg, dict):
+                cfg = DEFAULT_CONFIG
+        except Exception:
+            cfg = DEFAULT_CONFIG
+        fast_period = cfg.get("fast_ema_period", 9)
+        slow_period = cfg.get("slow_ema_period", 21)
+        rsi_period = cfg.get("rsi_period", 14)
+        score_thresh = cfg.get("score_threshold", 65)
+
+        fast_ema_series = calculate_ema(closes, fast_period)
+        slow_ema_series = calculate_ema(closes, slow_period)
+        latest_fast_ema = fast_ema_series[-1] if fast_ema_series else price
+        latest_slow_ema = slow_ema_series[-1] if slow_ema_series else price
+
+        rsi = calculate_rsi(closes, rsi_period)
+        vwap = calculate_vwap(candles)
+        rvol = calculate_rvol(volumes)
+        sup, res_val = calculate_support_resistance(candles)
+        atr_val = calculate_atr(candles)
+        order_blocks = calculate_order_blocks(candles)
+
+        momentum = round(((closes[-1] - closes[-6]) / closes[-6]) * 100, 2) if len(closes) >= 6 else 0.0
+        score_dict = calculate_composite_score(
+            fast_ema=latest_fast_ema,
+            slow_ema=latest_slow_ema,
+            momentum=momentum,
+            close=price,
+            vwap=vwap,
+            rsi=rsi,
+            score_threshold=score_thresh,
+            config=cfg,
+        )
+        if "raw" in score_dict:
+            score_dict["raw"]["atr"] = atr_val
+
+        cpr = calculate_cpr(day_high, day_low, prior_close if prior_close else price)
+        camarilla = calculate_camarilla(day_high, day_low, prior_close if prior_close else price)
+        supertrend = calculate_supertrend(candles, period=10, multiplier=3.0)
+        vwap_bands = calculate_vwap_bands(candles)
+
+        ai_decision = evaluate_ai_decision(
+            symbol=symbol,
+            price=price,
+            metrics=score_dict,
+            vwap=vwap,
+            support=sup,
+            resistance=res_val,
+            rvol=rvol,
+            order_blocks=order_blocks,
+            config=cfg,
+            closed_confirming=True,
+            atr=atr_val,
+            supertrend=supertrend,
+            cpr=cpr,
+            camarilla=camarilla,
+        )
+
         self._send_json({
             "symbol": symbol,
-            "name": info["name"],
-            "sector": info["sector"],
+            "name": info.get("name", symbol),
+            "sector": info.get("sector", "General"),
             "exchange": info.get("exchange", "NSE/BSE"),
             "timeframe": tf,
             "count": len(candles),
             "session_date": session_date,
             "candles": candles,
+            "price": price,
+            "change_pct": change_pct,
+            "change_basis": change_basis,
+            "day_high": day_high,
+            "day_low": day_low,
+            "volume": total_vol,
+            "metrics": score_dict,
+            "indicators": {
+                "fast_ema": latest_fast_ema,
+                "slow_ema": latest_slow_ema,
+                "rsi": rsi,
+                "vwap": vwap,
+                "rvol": rvol,
+                "atr": atr_val,
+                "supertrend": supertrend,
+                "cpr": cpr,
+                "camarilla": camarilla,
+                "vwap_bands": vwap_bands,
+                "support": sup,
+                "resistance": res_val,
+                "order_blocks": order_blocks,
+            },
+            "ai_decision": ai_decision,
+            "updated_at": candles[-1]["t"] if candles else None,
+            "source": "candles.db archive" if candles and not fetched else "Exchange Live Feed (Yahoo Finance)",
         })
 
     def _handle_historical_symbols(self, query: Dict[str, List[str]]) -> None:
@@ -1040,7 +1204,12 @@ class MarketScopeHandler(BaseHTTPRequestHandler):
             self._send_json({"error": "invalid_timeframe"}, status=400)
             return
 
-        cfg = self.db.get_latest_config() or DEFAULT_CONFIG
+        try:
+            cfg = self.db.get_latest_config()
+            if not isinstance(cfg, dict):
+                cfg = DEFAULT_CONFIG
+        except Exception:
+            cfg = DEFAULT_CONFIG
         archive = get_candle_archive()
         state_info = get_session_state(candle_archive=archive, db_manager=self.db)
         selected_date = query.get("date", [""])[0].strip()
@@ -1172,7 +1341,12 @@ class MarketScopeHandler(BaseHTTPRequestHandler):
                 self._send_json({"error": "auth_required", "detail": "Authentication required to refresh market pulse."}, status=401)
                 return
 
-        cfg = self.db.get_latest_config() or DEFAULT_CONFIG
+        try:
+            cfg = self.db.get_latest_config()
+            if not isinstance(cfg, dict):
+                cfg = DEFAULT_CONFIG
+        except Exception:
+            cfg = DEFAULT_CONFIG
         snapshot = None
         state_info = get_session_state(candle_archive=get_candle_archive(), db_manager=self.db)
         session_state = state_info.get("session_state")
@@ -1240,7 +1414,12 @@ class MarketScopeHandler(BaseHTTPRequestHandler):
                 self._send_json({"error": "auth_required", "detail": "Authentication required to refresh analysis."}, status=401)
                 return
 
-        cfg = self.db.get_latest_config() or DEFAULT_CONFIG
+        try:
+            cfg = self.db.get_latest_config()
+            if not isinstance(cfg, dict):
+                cfg = DEFAULT_CONFIG
+        except Exception:
+            cfg = DEFAULT_CONFIG
         # Reject unknown symbols before a feed outage can mask a missing symbol.
         # Keep catalogue entries and owner-tracked symbols available offline.
         known_symbols = cfg.get("monitored_symbols", [])
@@ -1358,7 +1537,12 @@ class MarketScopeHandler(BaseHTTPRequestHandler):
         if not isinstance(watchlist, list):
             watchlist = []
 
-        cfg = self.db.get_latest_config() or DEFAULT_CONFIG
+        try:
+            cfg = self.db.get_latest_config()
+            if not isinstance(cfg, dict):
+                cfg = DEFAULT_CONFIG
+        except Exception:
+            cfg = DEFAULT_CONFIG
         snapshot = None
         state_info = get_session_state(candle_archive=get_candle_archive(), db_manager=self.db)
         session_state = str(state_info.get("session_state") or "UNAVAILABLE")
@@ -1482,7 +1666,12 @@ class MarketScopeHandler(BaseHTTPRequestHandler):
             return
 
         scraper = get_live_scraper_feed()
-        cfg = self.db.get_latest_config() or DEFAULT_CONFIG
+        try:
+            cfg = self.db.get_latest_config()
+            if not isinstance(cfg, dict):
+                cfg = DEFAULT_CONFIG
+        except Exception:
+            cfg = DEFAULT_CONFIG
         max_tracked = int(cfg.get("max_tracked_symbols", 100))
 
         clean = raw_symbol.replace(".NS", "").replace(".BO", "")

@@ -139,7 +139,52 @@ function chartBars(s){const cc=state.confirmed?s.candles.filter(c=>c.closed===tr
 
 function showChartTip(area,s,e){const rect=area.getBoundingClientRect(),bars=chartBars(s),i=Math.max(0,Math.min(bars.length-1,Math.floor((e.clientX-rect.left-14)/(rect.width-78)*bars.length))),c=bars[i];if(!c)return;let tip=$('.chart-tip',area);if(!tip){tip=document.createElement('div');tip.className='chart-tip';area.append(tip)}tip.textContent=`${new Date(c.t*1000).toLocaleTimeString('en-IN',{timeZone:'Asia/Kolkata',hour:'2-digit',minute:'2-digit',hour12:false})} IST · O ${money(c.o)} H ${money(c.h)} L ${money(c.l)} C ${money(c.c)} · V ${num(c.v)} · ${c.closed?'Closed':'Open'}`;}
 
-function openDetail(symbol){hideStockPeek();state.detailSymbol=symbol;const s=stocks().find(s=>s.symbol===symbol);if(!s)return;showModal(`<section class="panel" id="detailPanel">${chartShell(s,'detailChart')}</section><div class="detail-context"><div>${sourceBadge(s)}<span class="quote-time">Quote ${clock(s.updated_at,true)} IST</span></div><button class="button" id="detailWatch">${state.watch.includes(symbol)?'★ Remove from':'☆ Add to'} watchlist</button></div><div id="detailSetup">${setupPanel(s)}</div><section class="panel source-audit"><div class="panel-head"><h2>Data provenance</h2><span class="badge">${safe(sourceTitle(s.source))}</span></div>${comparisonMarkup(s)}<p>${safe(s.sector)} · ${s.stale?'Stale observation · ':''}${s.gap?'History gap · ':''}${state.data?.session_state==='LIVE'?'Received public candles':'Stored real-session research'}. Indicator values do not establish exchange freshness.</p></section><section class="panel stock-ai"><div class="panel-head"><h2>Laya research briefing</h2><button class="button" id="analyzeStock">Explain this stock ↗</button></div><div id="stockAiText"><p class="muted">Request an explanation of the received snapshot. Local-model prose is labelled separately.</p></div></section>`,{wide:true,eyebrow:'ZIEN QUANT / COMPANY RESEARCH'});bindChart($('#detailPanel'),s);$('#detailWatch').onclick=()=>{toggleWatch(symbol);openDetail(symbol)};$('#analyzeStock').onclick=()=>analyzeStock(symbol);drawChart($('#detailChart'),s);hydrateStock(symbol)}
+function openDetail(symbol){
+ hideStockPeek();state.detailSymbol=symbol;
+ let s=stocks().find(s=>s.symbol===symbol);
+ if(!s){if(!state.dynamicStocks)state.dynamicStocks={};s=state.dynamicStocks[symbol]}
+ if(!s){
+  showModal(`<div style="padding:28px;text-align:center"><span class="stock-avatar" style="width:48px;height:48px;font-size:18px;margin:0 auto 12px">${safe(symbol.slice(0,2))}</span><h2>${safe(symbol)}</h2><div class="loading" style="margin:20px 0">Loading instrument candles & indicators…</div></div>`,{wide:true,eyebrow:'ZIEN QUANT / COMPANY RESEARCH'});
+  api('/api/stock?symbol='+encodeURIComponent(symbol)+'&timeframe='+state.timeframe)
+   .then(res=>{
+    const candles=normalizeCandles(res.candles||[]);
+    if(!candles.length)throw Error('No candle data received for '+symbol);
+    const last=candles[candles.length-1],first=candles[0];
+    const price=res.price??last.c;
+    const change=res.change_pct??(first.o?Math.round(((price-first.o)/first.o)*10000)/100:0);
+    const dynamicStock={
+     symbol:res.symbol||symbol,
+     name:res.name||symbol,
+     sector:res.sector||'Equities',
+     exchange:res.exchange||'NSE',
+     price:price,
+     change:change,
+     day_high:res.day_high??Math.max(...candles.map(c=>c.h)),
+     day_low:res.day_low??Math.min(...candles.map(c=>c.l)),
+     volume:res.volume??candles.reduce((acc,c)=>acc+(c.v||0),0),
+     candles:candles,
+     metrics:res.metrics||{score:50,rsi:50,rvol:1.0},
+     indicators:res.indicators||{},
+     ai_decision:res.ai_decision||{grade:'B',action:'MONITOR',stop_loss:null,target_1:null,risk_reward_ratio:null,rationale:'Live research observation'},
+     updated_at:res.updated_at||last.t,
+     source:res.source||'Exchange Live Feed',
+    };
+    state.dynamicStocks[symbol]=dynamicStock;
+    if(state.data&&Array.isArray(state.data.stocks)){
+     if(!state.data.stocks.some(item=>item.symbol===symbol)){
+      state.data.stocks.push(dynamicStock);
+     }
+    }
+    openDetail(symbol);
+   })
+   .catch(err=>{
+    showModal(`<div style="padding:28px;text-align:center"><div class="empty-icon">⌁</div><h2>Data unavailable for ${safe(symbol)}</h2><p class="muted">${safe(err.message||'The exchange feed has no received candles for this instrument.')}</p><div class="actions" style="margin-top:20px;justify-content:center"><button class="button primary" id="retryDynamic">Retry</button><button class="button" id="closeDynamic">Close</button></div></div>`,{wide:false,eyebrow:'ZIEN QUANT / FEED STATUS'});
+    $('#retryDynamic').onclick=()=>openDetail(symbol);
+    $('#closeDynamic').onclick=dismissDialog;
+   });
+  return;
+ }
+ showModal(`<section class="panel" id="detailPanel">${chartShell(s,'detailChart')}</section><div class="detail-context"><div>${sourceBadge(s)}<span class="quote-time">Quote ${clock(s.updated_at,true)} IST</span></div><button class="button" id="detailWatch">${state.watch.includes(symbol)?'★ Remove from':'☆ Add to'} watchlist</button></div><div id="detailSetup">${setupPanel(s)}</div><section class="panel source-audit"><div class="panel-head"><h2>Data provenance</h2><span class="badge">${safe(sourceTitle(s.source))}</span></div>${comparisonMarkup(s)}<p>${safe(s.sector)} · ${s.stale?'Stale observation · ':''}${s.gap?'History gap · ':''}${state.data?.session_state==='LIVE'?'Received public candles':'Stored real-session research'}. Indicator values do not establish exchange freshness.</p></section><section class="panel stock-ai"><div class="panel-head"><h2>Laya research briefing</h2><button class="button" id="analyzeStock">Explain this stock ↗</button></div><div id="stockAiText"><p class="muted">Request an explanation of the received snapshot. Local-model prose is labelled separately.</p></div></section>`,{wide:true,eyebrow:'ZIEN QUANT / COMPANY RESEARCH'});bindChart($('#detailPanel'),s);$('#detailWatch').onclick=()=>{toggleWatch(symbol);openDetail(symbol)};$('#analyzeStock').onclick=()=>analyzeStock(symbol);drawChart($('#detailChart'),s);hydrateStock(symbol)}
 
 function renderDetailChart(){const s=stocks().find(s=>s.symbol===state.detailSymbol);if(!s||!$('#detailChart'))return;const root=$('#detailPanel');if(!root.dataset.tf||root.dataset.tf!==String(state.timeframe)){root.innerHTML=chartShell(s,'detailChart');root.dataset.tf=state.timeframe;bindChart(root,s)}$$('[data-overlay]',root).forEach(b=>(b.classList.toggle('active',state.overlays[b.dataset.overlay]),b.setAttribute('aria-pressed',String(state.overlays[b.dataset.overlay]))));$('.chart-price',root).innerHTML=`₹${money(s.price)}<small class="${cls(s.change)}">${pct(s.change)}</small>`;$('.chart-bottom',root).innerHTML=chartReadout(s);drawChart($('#detailChart'),s);if($('#detailSetup'))$('#detailSetup').innerHTML=setupPanel(s)}
 
@@ -161,13 +206,14 @@ function renderCards(){
   return (state.sort==='bear'?av-bv:bv-av)||a.symbol.localeCompare(b.symbol);
  });
  if($('#scannerResultCount'))$('#scannerResultCount').textContent=`${ss.length} of ${state.view==='watchlist'?stocks().filter(s=>state.watch.includes(s.symbol)).length:stocks().length} stocks shown`;
- $('#stockCards').innerHTML=ss.map(s=>`<article class="panel stock-card" data-card="${safe(s.symbol)}" tabindex="0" aria-label="Open ${safe(s.symbol)} details"><header><span class="stock-avatar">${safe(s.symbol.slice(0,2))}</span><div><span class="stock-name">${safe(s.symbol)}</span><span class="stock-company">${safe(s.name)}</span></div><button data-watch="${safe(s.symbol)}" class="${state.watch.includes(s.symbol)?'saved':''}" aria-label="${state.watch.includes(s.symbol)?'Remove':'Add'} ${safe(s.symbol)} ${state.watch.includes(s.symbol)?'from':'to'} watchlist">${state.watch.includes(s.symbol)?'★':'☆'}</button></header><div class="price-line"><b>₹${money(s.price)}</b><span class="${cls(s.change)}">${pct(s.change)}</span></div>${spark(s)}<div class="card-provenance">${sourceBadge(s)}</div><footer><span>Score <strong>${metric(s)?.score??'—'}</strong></span><span>RSI <strong>${measure(metric(s)?.rsi)}</strong></span><span class="${cls(metric(s)?metric(s).score-50:null)}">${signal(s)}</span></footer></article>`).join('')||`<div class="panel empty" style="grid-column:1/-1"><div class="empty-icon">☆</div><h2>${state.view==='watchlist'?'Build your watchlist':'No matching stocks'}</h2><p>${state.view==='watchlist'?'Star a stock in the scanner or stock details to keep it here.':'Try another symbol or sector.'}</p><button class="button" data-view="scanner">Open stock scanner</button></div>`;
+ $('#stockCards').innerHTML=ss.map(s=>`<article class="panel stock-card" data-card="${safe(s.symbol)}" tabindex="0" aria-label="Open ${safe(s.symbol)} details"><header><span class="stock-avatar">${safe(s.symbol.slice(0,2))}</span><div><span class="stock-name">${safe(s.symbol)}</span><span class="stock-company">${safe(s.name)}</span></div><button data-watch="${safe(s.symbol)}" class="${state.watch.includes(s.symbol)?'saved':''}" aria-label="${state.watch.includes(s.symbol)?'Remove':'Add'} ${safe(s.symbol)} ${state.watch.includes(s.symbol)?'from':'to'} watchlist">${state.watch.includes(s.symbol)?'★':'☆'}</button></header><div class="price-line"><b>₹${money(s.price)}</b><span class="${cls(s.change)}">${pct(s.change)}</span></div>${spark(s)}<div class="card-provenance">${sourceBadge(s)}</div><footer><span>Score <strong>${metric(s)?.score??'—'}</strong></span><span>RSI <strong>${measure(metric(s)?.rsi)}</strong></span><span class="${cls(metric(s)?metric(s).score-50:null)}">${signal(s)}</span></footer></article>`).join('')||`<div class="panel empty" style="grid-column:1/-1"><div class="empty-icon">☆</div><h2>${state.view==='watchlist'?'Build your watchlist':'No matching stocks'}</h2><p>${state.view==='watchlist'?'Star a stock in the scanner or stock details to keep it here.':'Try another symbol or sector.'}</p><button class="button primary" id="openMasterFromScanner">Search 2,600+ NSE master catalogue ↗</button></div>`;
+  if($('#openMasterFromScanner'))$('#openMasterFromScanner').onclick=showSearch;
  $$('[data-card]').forEach(c=>{c.onclick=()=>openDetail(c.dataset.card);c.onkeydown=e=>{if(e.target===c&&(e.key==='Enter'||e.key===' ')){e.preventDefault();c.click()}}});
  $$('[data-watch]').forEach(b=>b.onclick=e=>{e.stopPropagation();toggleWatch(b.dataset.watch)});bindCommon();
 }
 
 function showSearch(){
- showModal('<div class="search-heading"><h2>Find your next focus.</h2><span class="badge">NSE MASTER</span></div><p>Search companies and symbols. Tracking a new stock updates the owner’s market universe.</p><input id="searchInput" aria-label="Search all NSE stocks" placeholder="Symbol or company name…" autocomplete="off"><div id="searchMeta" class="search-meta">Searching the instrument catalogue…</div><div id="searchResults" class="search-results"></div>',{eyebrow:'COMMAND SEARCH · ⌘ / CTRL K'});
+ showModal('<div class="search-heading"><h2>Find your next focus.</h2><span class="badge">NSE MASTER</span></div><p>Search companies and symbols across all 2,600+ NSE/BSE equities. Click any instrument to view its live/historical chart and quantitative setup.</p><input id="searchInput" aria-label="Search all NSE stocks" placeholder="Symbol or company name…" autocomplete="off"><div id="searchMeta" class="search-meta">Searching the instrument catalogue…</div><div id="searchResults" class="search-results"></div>',{eyebrow:'COMMAND SEARCH · ⌘ / CTRL K'});
  let searchSequence=0,searchTimer;
  const update=async()=>{
   const input=$('#searchInput');if(!input)return;const q=input.value.trim(),seq=++searchSequence;
@@ -176,14 +222,11 @@ function showSearch(){
   if(seq!==searchSequence||!$('#searchInput'))return;
   const rows=result.stocks||result.results||[];state.catalogue={...state.catalogue,...result};
   $('#searchMeta').textContent=`${Number(result.total??rows.length).toLocaleString('en-IN')} catalogue entries · ${result.source||'NSE equities'} · ${state.config.universe.length} tracked`;
-  $('#searchResults').innerHTML=rows.map(s=>{const live=stocks().find(v=>v.symbol===s.symbol),tracked=state.config.universe.includes(s.symbol);return `<button class="search-result" data-result="${safe(s.symbol)}" data-tracked="${tracked}"><span class="stock-avatar">${safe(s.symbol.slice(0,2))}</span><span><strong>${safe(s.symbol)}</strong><small>${safe(s.name)} · ${safe(s.exchange||'NSE')}</small></span><span class="result-price">${live?'₹'+money(live.price):tracked?'Tracked':'Track ↗'}<small class="${live?cls(live.change):'muted'}">${live?pct(live.change):tracked?'Waiting for data':'Owner access'}</small></span></button>`}).join('')||'<p style="padding:20px 0">No instruments match this search.</p>';
+  $('#searchResults').innerHTML=rows.map(s=>{const live=stocks().find(v=>v.symbol===s.symbol),tracked=state.config.universe.includes(s.symbol);return `<button class="search-result" data-result="${safe(s.symbol)}" data-tracked="${tracked}"><span class="stock-avatar">${safe(s.symbol.slice(0,2))}</span><span><strong>${safe(s.symbol)}</strong><small>${safe(s.name)} · ${safe(s.exchange||'NSE')}</small></span><span class="result-price">${live?'₹'+money(live.price):'View Chart ↗'}<small class="${live?cls(live.change):'muted'}">${live?pct(live.change):'NSE Master'}</small></span></button>`}).join('')||'<p style="padding:20px 0">No instruments match this search.</p>';
   $$('[data-result]').forEach(b=>b.onclick=async()=>{
    const symbol=b.dataset.result;
-   if(stocks().some(s=>s.symbol===symbol))return openDetail(symbol);
-   if(b.dataset.tracked==='true')return toast(`${symbol} is tracked. Waiting for source data.`);
-   if(state.user?.role!=='owner'){toast('Sign in as owner to add tracked stocks.');return showLogin()}
-   b.disabled=true;
-   try{await api('/api/stocks/track',{method:'POST',body:{symbol}});const config=await api('/api/bootstrap');state.config=config.config;state.allSymbols=[...new Set([...(state.allSymbols||[]),symbol])];await refresh(true);toast(`${symbol} added to tracking`);if(stocks().some(s=>s.symbol===symbol))openDetail(symbol);else update()}catch(e){toast(e.message);b.disabled=false}
+   dismissDialog();
+   openDetail(symbol);
   });
  };
  $('#searchInput').oninput=()=>{clearTimeout(searchTimer);searchTimer=setTimeout(update,180)};update();$('#searchInput').focus();

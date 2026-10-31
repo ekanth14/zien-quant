@@ -2123,8 +2123,31 @@ function bindEvents() {
       state.scannerSearch = '';
 
       // Add to live scraper tracking
-      await publicAPI.trackStock(sym);
-      await fetchMarketData();
+      try {
+        await publicAPI.trackStock(sym);
+        await fetchMarketData();
+      } catch (e) {}
+      if (!state.latestSnapshot?.stocks?.[sym]) {
+        try {
+          const res = await fetch(`/api/stock?symbol=${encodeURIComponent(sym)}&timeframe=${state.timeframe}`);
+          if (res.ok) {
+            const data = await res.json();
+            if (!state.latestSnapshot) state.latestSnapshot = { stocks: {} };
+            if (!state.latestSnapshot.stocks) state.latestSnapshot.stocks = {};
+            state.latestSnapshot.stocks[sym] = {
+              symbol: data.symbol,
+              name: data.name,
+              sector: data.sector,
+              price: data.price,
+              change_pct: data.change_pct,
+              candles: data.candles,
+              metrics: data.metrics || { score: 50 },
+              indicators: data.indicators || {},
+              ai_decision: data.ai_decision || {}
+            };
+          }
+        } catch (err) {}
+      }
       openChartModal(sym);
     });
   }
@@ -2202,8 +2225,31 @@ function bindEvents() {
 
       headerSearchDropdown.style.display = 'none';
       headerSearchInput.value = '';
-      await publicAPI.trackStock(sym);
-      await fetchMarketData();
+      try {
+        await publicAPI.trackStock(sym);
+        await fetchMarketData();
+      } catch (e) {}
+      if (!state.latestSnapshot?.stocks?.[sym]) {
+        try {
+          const res = await fetch(`/api/stock?symbol=${encodeURIComponent(sym)}&timeframe=${state.timeframe}`);
+          if (res.ok) {
+            const data = await res.json();
+            if (!state.latestSnapshot) state.latestSnapshot = { stocks: {} };
+            if (!state.latestSnapshot.stocks) state.latestSnapshot.stocks = {};
+            state.latestSnapshot.stocks[sym] = {
+              symbol: data.symbol,
+              name: data.name,
+              sector: data.sector,
+              price: data.price,
+              change_pct: data.change_pct,
+              candles: data.candles,
+              metrics: data.metrics || { score: 50 },
+              indicators: data.indicators || {},
+              ai_decision: data.ai_decision || {}
+            };
+          }
+        } catch (err) {}
+      }
       openChartModal(sym);
     });
 
