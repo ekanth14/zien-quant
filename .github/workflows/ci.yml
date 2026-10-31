@@ -59,3 +59,4 @@ jobs:
           node --check marketscope/static/workspace.js
           node --check marketscope/static/workspace-api.js
           npm test
+

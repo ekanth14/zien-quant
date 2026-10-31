@@ -10,6 +10,7 @@ from __future__ import annotations
 import json
 import logging
 import math
+import os
 import socket
 import sqlite3
 import sys
@@ -299,6 +300,9 @@ class RealTimeScraperFeed:
         Implements retries with backoff on 429/5xx/timeout and circuit breaker pausing.
         Never fabricates dummy prices on failure.
         """
+        if os.environ.get('MS_MARKET_PROVIDER', 'public').lower() == 'fyers':
+            from fyers_live import fetch_stock
+            return fetch_stock(symbol, timeframe, exchange)
         ticker = self._resolve_ticker(symbol, exchange)
         clean_symbol = ticker.split(".")[0]
 
@@ -629,6 +633,9 @@ class RealTimeScraperFeed:
             "sector": sector,
             "exchange": raw_data.get("exchange", "NSE/BSE"),
             "status": "ok",
+            "source": raw_data.get("source", "yahoo"),
+            "quote_timestamp": raw_data.get("quote_timestamp"),
+            "delay_status": raw_data.get("delay_status", "Provider delay unknown"),
             "price": current_price,
             "score": score_dict.get("score"),
             "signal": score_dict.get("signal"),
@@ -800,7 +807,7 @@ class RealTimeScraperFeed:
             "timeframe": timeframe,
             "mode": "live",
             "data_mode": "LIVE",
-            "provider": "NSE & BSE Live Real-Time Scraper",
+            "provider": "FYERS REST polling" if os.environ.get('MS_MARKET_PROVIDER', 'public').lower() == 'fyers' else "Yahoo public candle feed",
             "feed": feed_block,
             "counts": {
                 "total": len(stocks),

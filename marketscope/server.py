@@ -60,6 +60,7 @@ from market_schedule import (
 from laya_ai import (
     get_laya_engine,
 )
+from laya_context import build_laya_website_context
 from security import (
     DatabaseManager,
     RateLimiter,
@@ -69,6 +70,11 @@ from security import (
 )
 from signal_journal import SignalJournal
 from candle_archive import get_candle_archive
+from results_service import get_results_service
+from earnings_research import analyze_event
+from paper_trading import get_paper_session
+from paper_watchlist import get_paper_watchlist
+from intraday_margins import get_intraday_margins
 from fyers_history import (
     FyersHistoryAuthError,
     FyersHistoryError,
@@ -274,9 +280,58 @@ class MarketScopeHandler(BaseHTTPRequestHandler):
         elif path in ("/mobile",):
             self._serve_static_file("mobile_terminal.html")
             return
+        elif path in ("/results", "/results/"):
+            self._serve_static_file("results.html")
+            return
+
+        # Research is read-only: no strategy activation or broker execution route.
+        if path == "/api/research/strategies":
+            try:
+                from strategy.research_lab import catalogue
+                self._send_json(catalogue())
+            except (OSError, ValueError):
+                self._send_json({"error": "Research registry unavailable"}, status=503)
+            return
+        if path == "/api/research/document":
+            documents = {"formulas": "FORMULAS_AND_EVIDENCE.md",
+                         "architecture": "PAPER_TRADING_ARCHITECTURE.md",
+                         "coverage": "RESEARCH_COVERAGE.md"}
+            name = urllib.parse.parse_qs(urllib.parse.urlparse(self.path).query).get("name", [""])[0]
+            if name not in documents:
+                self._send_json({"error": "Unknown research document"}, status=400)
+                return
+            try:
+                content = (BASE_DIR.parent / "docs" / "quantocracy" / documents[name]).read_text(encoding="utf-8")
+                self._send_text(content, content_type="text/plain; charset=utf-8")
+            except OSError:
+                self._send_json({"error": "Research document unavailable"}, status=503)
+            return
 
         # APIs
-        if path == "/api/bootstrap":
+        if path in ("/api/paper-watchlist", "/api/paper-watchlist/report", "/api/paper-watchlist/export"):
+            try:
+                watch = get_paper_watchlist(self.db.db_path)
+                day = query.get("day", [None])[0]
+                if day:
+                    datetime.strptime(day, "%Y-%m-%d")
+                if path == "/api/paper-watchlist":
+                    self._send_json(watch.status())
+                elif path == "/api/paper-watchlist/report":
+                    self._send_json(watch.report(day))
+                else:
+                    fmt = query.get("format", ["csv"])[0]
+                    if fmt not in ("csv", "json"):
+                        raise ValueError("Export format must be csv or json")
+                    self._send_text(watch.export(day, fmt), "text/csv; charset=utf-8" if fmt == "csv" else "application/json; charset=utf-8")
+            except ValueError as exc:
+                self._send_json({"error": "invalid_paper_request", "detail": str(exc)}, status=400)
+            except Exception:
+                self._send_json({"error": "paper_watchlist_unavailable", "detail": "Paper ledger is unavailable; no simulated results asserted."}, status=503)
+        elif path == "/api/paper/status":
+            self._send_json(get_paper_session().snapshot())
+        elif path == "/api/paper/export":
+            self._send_text(get_paper_session().export_csv(), "text/csv; charset=utf-8")
+        elif path == "/api/bootstrap":
             self._handle_bootstrap()
         elif path == "/api/market":
             self._handle_market(query)
@@ -294,6 +349,14 @@ class MarketScopeHandler(BaseHTTPRequestHandler):
             self._handle_historical_candles(query)
         elif path == "/api/health":
             self._handle_health()
+        elif path == "/api/intraday-margins":
+            self._handle_intraday_margins()
+        elif path == "/api/results":
+            self._handle_results(query)
+        elif path == "/api/results/detail":
+            self._handle_result_detail(query)
+        elif path == "/api/results/status":
+            self._send_json(get_results_service().status())
         elif path == "/api/admin":
             self._handle_admin()
         elif path == "/api/admin/audit-logs":
@@ -364,7 +427,7 @@ class MarketScopeHandler(BaseHTTPRequestHandler):
         parsed = urllib.parse.urlparse(self.path)
         path = parsed.path
 
-        if path in ("/api/logout", "/api/config", "/api/config/preview", "/api/session/preview", "/api/backup", "/api/stocks/track", "/api/stocks/untrack"):
+        if path in ("/api/paper/control", "/api/logout", "/api/config", "/api/config/preview", "/api/session/preview", "/api/backup", "/api/stocks/track", "/api/stocks/untrack"):
             session = self._get_current_session()
             if session:
                 supplied = self.headers.get("X-CSRF-Token", "")
@@ -383,7 +446,17 @@ class MarketScopeHandler(BaseHTTPRequestHandler):
                 self._send_rate_limited(retry_after=rate_limiter_track.retry_after(client_ip), detail="Tracking endpoint rate limit exceeded. Max 10 req/min.")
                 return
 
-        if path == "/api/login":
+        if path == "/api/paper/control":
+            session = self._get_current_session()
+            if not session or session.get("role") not in ("owner", "admin"):
+                self._send_json({"error": "auth_required", "detail": "Sign in as owner/admin to control the shared paper workspace."}, status=403)
+                return
+            body = self._parse_json_body() or {}
+            try:
+                self._send_json(get_paper_session().command(body.get("action"), body, session["email"]))
+            except ValueError as exc:
+                self._send_json({"error": "paper_control", "detail": str(exc)}, status=400)
+        elif path == "/api/login":
             self._handle_login()
         elif path == "/api/logout":
             self._handle_logout()
@@ -470,6 +543,11 @@ class MarketScopeHandler(BaseHTTPRequestHandler):
                     "Local model explanations",
                     "Market snapshot summaries",
                     "Authenticated research chat",
+                    "Deep Institutional Trade Briefing",
+                    "Macro Market Pulse Synthesis",
+                    "Interactive Copilot Chat, including after-hours research",
+                    "On-demand context from stored candles, signals, results, margins and website formulas",
+                    "Website-data answers when local Ollama is unavailable",
                 ],
             },
             "market_schedule": get_market_schedule_info(),
@@ -537,7 +615,8 @@ class MarketScopeHandler(BaseHTTPRequestHandler):
                     snapshot["as_of"] = snapshot.get("timestamp")
                     journal = getattr(self, "signal_journal", None) or SignalJournal(self.db)
                     try:
-                        journal.log_snapshot_signals(snapshot, timeframe=tf)
+                        paper_ids = journal.log_snapshot_signals(snapshot, timeframe=tf)
+                        get_paper_watchlist(self.db.db_path).observe_snapshot(snapshot, tf, cfg, paper_ids)
                         candles_by_symbol = {}
                         for s_sym, s_val in snapshot.get("stocks", {}).items():
                             c_list = s_val.get("candles")
@@ -797,6 +876,97 @@ class MarketScopeHandler(BaseHTTPRequestHandler):
             "candles": candles,
         })
 
+    def _handle_historical_symbols(self, query: Dict[str, List[str]]) -> None:
+        search = query.get("q", [""])[0].strip()[:80]
+        try:
+            limit = min(25, max(1, int(query.get("limit", ["15"])[0])))
+        except (TypeError, ValueError):
+            limit = 15
+        try:
+            result = get_fyers_history_provider().search_instruments(search, limit=limit)
+        except FyersHistoryError as exc:
+            self._send_json({"error": "fyers_symbol_search_unavailable", "detail": str(exc)}, status=503)
+            return
+        self._send_json(result)
+
+    def _handle_historical_candles(self, query: Dict[str, List[str]]) -> None:
+        provider = get_fyers_history_provider()
+        try:
+            result = provider.get_candles(
+                symbol=query.get("symbol", [""])[0],
+                start=query.get("from", [""])[0],
+                end=query.get("to", [""])[0],
+                resolution=query.get("resolution", ["D"])[0],
+            )
+        except FyersHistoryNotConfigured as exc:
+            self._send_json({"error": "fyers_not_configured", "detail": str(exc)}, status=503)
+            return
+        except FyersHistoryAuthError as exc:
+            self._send_json({"error": "fyers_auth_error", "detail": str(exc)}, status=503)
+            return
+        except FyersHistoryRateLimitError as exc:
+            self._send_json({"error": "fyers_rate_limited", "detail": str(exc)}, status=429)
+            return
+        except FyersHistoryError as exc:
+            self._send_json({"error": "fyers_history_unavailable", "detail": str(exc)}, status=503)
+            return
+        self._send_json(result)
+
+    def _handle_intraday_margins(self) -> None:
+        """Expose the published broker reference only for the website catalogue."""
+        payload = dict(get_intraday_margins().payload())
+        catalogue = dict(get_stock_database().get_company_symbols())
+        records = payload.get("records", {})
+        payload["source_record_count"] = payload.get("source_record_count", len(records))
+        payload["source_eligible_count"] = payload.get(
+            "source_eligible_count", payload.get("eligible_count", 0))
+        payload["records"] = {symbol: {**row, "company_name": catalogue[symbol]}
+                              for symbol, row in records.items() if symbol in catalogue}
+        payload["record_count"] = len(payload["records"])
+        payload["eligible_count"] = sum(row.get("eligible") is True for row in payload["records"].values())
+        payload["catalogue_count"] = len(catalogue)
+        self._send_json(payload)
+
+    def _handle_results(self, query: Dict[str, List[str]]) -> None:
+        """Read locally collected filings; browsers never trigger network backfills."""
+        first = lambda key, default="": query.get(key, [default])[0]
+        try:
+            date_from, date_to = first("from"), first("to")
+            for value in (date_from, date_to):
+                if value:
+                    datetime.strptime(value, "%Y-%m-%d")
+            if date_from and date_to and date_from > date_to:
+                raise ValueError("Start date must precede end date.")
+            limit = int(first("limit", "100"))
+            if not 1 <= limit <= 200:
+                raise ValueError("Limit must be between 1 and 200.")
+            offset = int(first("offset", "0"))
+            if offset < 0 or offset > 100000:
+                raise ValueError("Invalid page offset.")
+            search = first("search").strip()[:100].casefold()
+            tone = first("tone", "all")
+            if tone not in ("all", "positive", "negative", "mixed"):
+                raise ValueError("Unknown result filter.")
+        except (ValueError, TypeError):
+            self._send_json({"error": "invalid_results_filter", "detail": "Use ISO dates, a valid date range and a limit of 1–200."}, status=400)
+            return
+        data = get_results_service().list_events(date_from=date_from or None, date_to=date_to or None, symbol=first("symbol").upper()[:30], search=search, tone=tone, offset=offset, limit=limit)
+        self._send_json(data)
+
+    def _handle_result_detail(self, query: Dict[str, List[str]]) -> None:
+        event_id = query.get("id", [""])[0]
+        if not event_id or len(event_id) > 160:
+            self._send_json({"error": "invalid_result_id"}, status=400)
+            return
+        service = get_results_service()
+        event = service.get_event(event_id)
+        if event is None:
+            self._send_json({"error": "result_not_found"}, status=404)
+            return
+        symbol = event["symbol"]
+        analysis = analyze_event(event, service.history(symbol), {symbol: service.get_candles(symbol)}, datetime.now(timezone.utc))
+        self._send_json({"event": event, "analysis": analysis, "status": service.status()})
+
     def _handle_health(self) -> None:
         uptime = round(time.time() - server_start_time, 1)
         self._send_json({
@@ -988,7 +1158,10 @@ class MarketScopeHandler(BaseHTTPRequestHandler):
 
     def _handle_ai_status(self) -> None:
         engine = get_laya_engine()
-        self._send_json(engine.check_status())
+        status = engine.check_status()
+        status.update(chat_available_after_hours=True, chat_requires_owner_sign_in=True,
+                      chat_data_mode="latest website snapshot and locally stored records")
+        self._send_json(status)
 
     def _handle_ai_pulse(self, query: Dict[str, List[str]]) -> None:
         force_refresh = query.get("refresh", ["0"])[0] in ("1", "true")
@@ -1078,21 +1251,28 @@ class MarketScopeHandler(BaseHTTPRequestHandler):
         state_info = get_session_state(candle_archive=get_candle_archive(), db_manager=self.db)
         session_state = state_info.get("session_state")
         session_date = state_info.get("session_date")
+        if mode not in ("live", "previous"):
+            mode = "live"
+        if mode == "previous" and session_state in ("LIVE", "CLOSED_TODAY"):
+            previous_clock = datetime.now(IST).replace(hour=8, minute=59, second=0, microsecond=0)
+            previous_state = get_session_state(clock_dt=previous_clock, candle_archive=get_candle_archive(), db_manager=self.db)
+            session_state = previous_state.get("session_state")
+            session_date = previous_state.get("session_date")
 
         if session_state in ("PREVIOUS", "CLOSED_TODAY") and session_date:
-            snapshot = build_session_snapshot(session_date, timeframe=tf, db_manager=self.db, config=cfg)
+            snapshot = build_session_snapshot(session_date, timeframe=tf, db_manager=self.db, config=cfg, allow_remote_fallback=False)
         else:
             try:
                 snapshot = get_live_scraper_feed().get_snapshot(timeframe=tf, config=cfg)
             except Exception as e:
                 if session_date:
-                    snapshot = build_session_snapshot(session_date, timeframe=tf, db_manager=self.db, config=cfg)
+                    snapshot = build_session_snapshot(session_date, timeframe=tf, db_manager=self.db, config=cfg, allow_remote_fallback=False)
                 if not snapshot:
                     self._send_json({"error": "feed_unavailable", "detail": f"Live feed error: {e}"}, status=503)
                     return
 
         stock_data = snapshot.get("stocks", {}).get(symbol) if snapshot else None
-        if not stock_data:
+        if not stock_data and session_state == "LIVE":
             try:
                 proc = get_live_scraper_feed()._process_stock(symbol, timeframe=tf, config=cfg)
                 if proc:
@@ -1105,7 +1285,19 @@ class MarketScopeHandler(BaseHTTPRequestHandler):
             if candles and len(candles) >= 5:
                 from marketscope.decision_engine import score_stock
                 score_dict = score_stock(symbol, candles, timeframe=tf, config=cfg)
-                stock_data = {"symbol": symbol, "status": "ok", "source": "archive", "metrics": score_dict}
+                closes = [float(c.get("c", 0)) for c in candles if c.get("c") is not None]
+                stock_data = {
+                    "symbol": symbol, "status": "ok", "source": "archive",
+                    "price": closes[-1] if closes else None,
+                    "session_open": candles[0].get("o"),
+                    "day_high": max(float(c.get("h", 0)) for c in candles),
+                    "day_low": min(float(c.get("l", 0)) for c in candles),
+                    "change_pct": None,
+                    "metrics": score_dict,
+                    "candles": candles,
+                    "session_date": session_date,
+                    "session_state": session_state,
+                }
 
         if not stock_data:
             self._send_json({"error": f"Symbol '{symbol}' not found in active universe."}, status=404)
@@ -1142,32 +1334,104 @@ class MarketScopeHandler(BaseHTTPRequestHandler):
         symbol = body.get("symbol")
         mode = str(body.get("mode", "live")).lower()
         if symbol:
-            symbol = str(symbol).upper()
+            symbol = str(symbol).strip().upper()
+            if not re.fullmatch(r"[A-Z0-9&._-]{1,30}", symbol):
+                symbol = None
 
         if not message:
             self._send_json({"error": "Message is required."}, status=400)
             return
+        if len(message) > 500:
+            self._send_json({"error": "Message must be 500 characters or fewer."}, status=400)
+            return
+
+        try:
+            timeframe = int(body.get("timeframe", 5))
+        except (TypeError, ValueError):
+            timeframe = 5
+        if timeframe not in (1, 5, 15, 60):
+            timeframe = 5
+        history = body.get("history", [])
+        if not isinstance(history, list):
+            history = []
+        watchlist = body.get("watchlist", [])
+        if not isinstance(watchlist, list):
+            watchlist = []
 
         cfg = self.db.get_latest_config() or DEFAULT_CONFIG
         snapshot = None
         state_info = get_session_state(candle_archive=get_candle_archive(), db_manager=self.db)
-        session_state = state_info.get("session_state")
+        session_state = str(state_info.get("session_state") or "UNAVAILABLE")
         session_date = state_info.get("session_date")
 
-        if session_state in ("PREVIOUS", "CLOSED_TODAY") and session_date:
-            snapshot = build_session_snapshot(session_date, timeframe=5, db_manager=self.db, config=cfg)
+        if mode not in ("live", "previous"):
+            mode = "live"
+        requested_date = re.search(r"\b(20\d{2}-\d{2}-\d{2})\b", message)
+        historical_date = None
+        if requested_date:
+            try:
+                historical_date = datetime.strptime(requested_date.group(1), "%Y-%m-%d").date().isoformat()
+            except ValueError:
+                pass
+        if historical_date:
+            session_state = "HISTORICAL"
+            session_date = historical_date
+        elif mode == "previous" and session_state in ("LIVE", "CLOSED_TODAY"):
+            # Resolve the last completed session from stored candles/snapshots,
+            # matching the website's explicit Previous session view.
+            previous_clock = datetime.now(IST).replace(hour=8, minute=59, second=0, microsecond=0)
+            previous_state = get_session_state(clock_dt=previous_clock, candle_archive=get_candle_archive(), db_manager=self.db)
+            session_state = str(previous_state.get("session_state") or "PREVIOUS")
+            session_date = previous_state.get("session_date")
+
+        # Use the exchange session state to choose live versus stored data. The
+        # assistant itself is available at every time of day, including holidays.
+        if session_state in ("PREVIOUS", "CLOSED_TODAY", "HISTORICAL") and session_date:
+            try:
+                snapshot = build_session_snapshot(session_date, timeframe=timeframe, db_manager=self.db, config=cfg, allow_remote_fallback=False)
+            except Exception as exc:
+                logger.info("Laya could not assemble the stored session snapshot: %s", type(exc).__name__)
         else:
             try:
-                snapshot = get_live_scraper_feed().get_snapshot(timeframe=5, config=cfg)
-            except Exception as e:
-                if session_date:
-                    snapshot = build_session_snapshot(session_date, timeframe=5, db_manager=self.db, config=cfg)
-                if not snapshot:
-                    self._send_json({"error": "feed_unavailable", "detail": f"Live feed error: {e}"}, status=503)
-                    return
+                snapshot = get_live_scraper_feed().get_snapshot(timeframe=timeframe, config=cfg)
+            except Exception as exc:
+                logger.info("Laya live snapshot unavailable: %s", type(exc).__name__)
+            if not snapshot and session_date:
+                try:
+                    snapshot = build_session_snapshot(session_date, timeframe=timeframe, db_manager=self.db, config=cfg, allow_remote_fallback=False)
+                    session_state = "STORED_FALLBACK"
+                except Exception as exc:
+                    logger.info("Laya stored snapshot fallback unavailable: %s", type(exc).__name__)
+
+        if not isinstance(snapshot, dict):
+            snapshot = {"session_date": session_date, "session_state": session_state, "stocks": {}}
+
+        website_context = build_laya_website_context(
+            query=message,
+            snapshot=snapshot,
+            selected_symbol=symbol,
+            session_state=session_state,
+            session_date=session_date,
+            timeframe=timeframe,
+            config=cfg,
+            db_manager=self.db,
+            watchlist=watchlist,
+        )
 
         engine = get_laya_engine()
-        res = engine.chat_copilot(query=message, current_symbol=symbol, snapshot_data=snapshot)
+        res = engine.chat_copilot(
+            query=message,
+            current_symbol=(website_context.get("symbols") or [symbol])[0],
+            snapshot_data=snapshot,
+            website_context=website_context["text"],
+            history=history,
+        )
+        res["context"] = {
+            "session_state": session_state,
+            "session_date": session_date,
+            "stocks_available": website_context.get("snapshot_stock_count", 0),
+            "symbols_resolved": website_context.get("symbols", []),
+        }
         if res.get("error"):
             self._send_json(res, status=503)
             return
@@ -1520,6 +1784,14 @@ def run_server(host: Optional[str] = None, port: Optional[int] = None) -> None:
     server_address = (host, port)
     httpd = ThreadingHTTPServer(server_address, MarketScopeHandler)
     httpd.db_manager = db
+    results = get_results_service()
+    results.start()
+    paper = get_paper_session()
+    paper.start_worker()
+    watchlist = get_paper_watchlist(db.db_path)
+    watchlist.start(db)
+    margins = get_intraday_margins()
+    margins.start()
     print(f"============================================================")
     print(f" MarketScope NSE Flow Terminal running on http://{host}:{port}")
     print(f" Mode: Market Data Feed & Previous Session Archive [{env_name}]")
@@ -1529,6 +1801,11 @@ def run_server(host: Optional[str] = None, port: Optional[int] = None) -> None:
         httpd.serve_forever()
     except KeyboardInterrupt:
         print("\nShutting down server.")
+    finally:
+        watchlist.stop()
+        paper.stop()
+        margins.stop()
+        results.stop()
         httpd.server_close()
 
 

@@ -100,8 +100,11 @@ test('unsupported capabilities and backend errors cannot be mistaken for success
   await assert.rejects(api('/api/fyers/status'), /not available/);
   await assert.rejects(api('/api/market?source=compare'), /unavailable/);
   await assert.rejects(api('/api/market?mode=demo'), /current feed/);
-  await assert.rejects(api('/api/ai/analyze?mode=previous&symbol=TCS'), /cannot select a session date/);
+  await assert.rejects(api('/api/ai/pulse?mode=previous'), /cannot select a session date/);
   assert.equal(requests, 0);
+  // The installed after-hours extension supports a previous-session analysis.
+  // Its real backend error must survive; it is not an unsupported capability.
+  await assert.rejects(api('/api/ai/analyze?mode=previous&symbol=TCS'), error => error.status === 503 && error.code === 'feed_unavailable');
   await assert.rejects(api('/api/market'), error => error.status === 503 && error.code === 'feed_unavailable' && error.message === 'No real session data');
   assert.throws(() => toBackendConfig({ formula_version: 'v2' }), /does not support/);
   assert.throws(() => toBackendConfig({ accent: '#ffffff' }), /does not support/);

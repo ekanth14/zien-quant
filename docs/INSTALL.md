@@ -155,3 +155,4 @@ Zien Quant requires no external pip packages, CDN connections, or third-party fo
    python server.py --host 127.0.0.1 --port 8765
    ```
 4. In air-gapped environments, the terminal uses local persisted historical candles in `candles.db` to render the Previous Session replay view.
+

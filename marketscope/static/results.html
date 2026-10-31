@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark light"><meta name="description" content="Published results from your website company universe, comparable quarter growth and evidence from past market reactions.">
+  <title>Results & Reactions · Zien Quant</title>
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/results.css"><script type="module" src="/static/results.js"></script>
+<link rel="stylesheet" href="/static/stock-badges.css"><script src="/static/stock-badges.js"></script></head>
+<body>
+<a class="skip-link" href="#filings">Skip to company results</a>
+<aside class="sidebar" id="resultsNavigation">
+  <a class="brand" href="/"><span class="brand-mark">z↗</span><span>Zien Quant</span></a>
+  <div class="workspace"><span class="workspace-icon">P</span><div>Personal workspace<small>NSE · India equities</small></div></div>
+  <nav aria-label="Workspace navigation"><div class="nav-label">MARKET</div><a href="/"><span aria-hidden="true">▦</span> Market overview</a><a href="/#scanner"><span aria-hidden="true">⌁</span> Stock scanner</a><a href="/#watchlist"><span aria-hidden="true">☆</span> Watchlist</a><div class="nav-label">PAPER &amp; PERFORMANCE</div><a href="/results.html" class="active" aria-current="page"><span aria-hidden="true">◷</span> Results &amp; reactions</a><a href="/#paperwatch"><span aria-hidden="true">⇄</span> Paper positions <i>SIM</i></a><a href="/#paper-report"><span aria-hidden="true">▤</span> Performance</a><a href="/#paper"><span aria-hidden="true">◉</span> Paper reaction lab</a><div class="nav-label">RESEARCH &amp; WORKSPACE</div><a href="/#research"><span aria-hidden="true">∑</span> Quant research</a><a href="/#methodology"><span aria-hidden="true">⊞</span> Methodology</a><a href="/#admin"><span aria-hidden="true">⚙</span> Settings</a><a href="/flow"><span aria-hidden="true">≋</span> Flow River ↗</a></nav>
+  <div class="sidebar-foot"><span class="little-orbit" aria-hidden="true"></span><strong>From filing to context.</strong><p>Published results from your companies, comparable quarters and observed market behaviour.</p><a href="/#methodology">Explore signal methodology ↗</a></div>
+</aside>
+<div class="shell">
+  <header class="topbar"><button id="resultsMenu" class="mobile-menu" type="button" aria-label="Open workspace navigation" aria-controls="resultsNavigation" aria-expanded="false">☰</button><a class="mobile-brand" href="/" aria-label="Zien Quant overview">z↗</a><span>Workspace <b>/</b> <strong>Results &amp; reactions</strong></span><a href="/" class="back-link">Back to market ↗</a></header>
+  <main>
+    <section class="hero">
+      <div><span class="eyebrow">EARNINGS DESK</span><h1>Results &amp; reactions</h1><p>Results from your company universe. Compare quarters, then inspect the market response.</p><p id="universeScope" class="universe-scope">Reading your website’s company catalogue…</p></div>
+      <a class="button" href="/#paper">Open paper reaction lab ↗</a>
+    </section>
+    <section class="source-bar" aria-label="Disclosure source status"><div><span id="sourceDot" class="status-dot pending"></span><strong id="sourceState">Connecting to results service</strong><span id="sourceDescription">Reading your companies’ published disclosures</span></div><button id="refresh" type="button">↻ Check now</button><div class="source-times"><span id="lastCheck">Last checked —</span><span id="nextCheck">Updates while server is running</span></div></section>
+    <div id="errorBanner" class="notice warning" role="status" hidden></div>
+    <section class="summary-grid" aria-label="Results overview">
+      <article><span>DISCLOSURES IN VIEW</span><strong id="totalCount">—</strong><small>Sorted by announcement time</small></article><article><span>PROFIT IMPROVED QoQ</span><strong id="positiveCount" class="blue">—</strong><small>Loaded, comparable positive-base quarters</small></article><article><span>PROFIT DECLINED QoQ</span><strong id="negativeCount" class="red">—</strong><small>Loaded, comparable positive-base quarters</small></article><article><span>REACTION EVIDENCE</span><strong id="evidenceCount">—</strong><small>Events with usable observations</small></article>
+    </section>
+    <details class="history-coverage"><summary>Source history &amp; collection coverage</summary><strong id="storedCoverage">Stored history coverage has not been received yet.</strong><p id="historyProgress">Historical collection has not been confirmed. An empty dataset does not mean no company announced results.</p><div data-margin-legend aria-label="Zerodha intraday margin reference"></div></details>
+    <div class="history-presets" role="group" aria-label="Result date range"><span>Results from 6 May 2023 onward</span><button type="button" data-history-range="all" aria-pressed="true">Post-COVID history</button><button type="button" data-history-range="30days" aria-pressed="false">Last 30 days</button><button type="button" data-history-range="today" aria-pressed="false">Today</button></div>
+    <form id="filters" class="filters" aria-label="Filter results"><label class="search-label"><span class="sr-only">Search company or stock symbol</span><span aria-hidden="true">⌕</span><input id="companySearch" name="search" type="search" placeholder="Search company or symbol" autocomplete="off"></label><label>From <input id="dateFrom" name="from" type="date" min="2023-05-06" required></label><label>To <input id="dateTo" name="to" type="date" min="2023-05-06" required></label><label class="sr-only" for="tone">Profit change filter</label><select id="tone" name="tone"><option value="all">All results</option><option value="positive">Revenue &amp; profit improved</option><option value="negative">Revenue &amp; profit declined</option></select><button type="submit" class="button primary">Apply filters</button></form>
+    <div class="results-layout">
+      <section id="filings" class="filings" tabindex="0" aria-labelledby="filingsTitle"><div class="section-head"><div><span class="eyebrow">THE DISCLOSURE LEDGER</span><h2 id="filingsTitle">Your company results</h2></div><span class="mini-label">ALL TIMES IST</span></div><div id="filingList" aria-live="polite" aria-busy="true"><div class="empty-state"><span class="loading-ring" aria-hidden="true"></span><h3>Reading the results ledger</h3><p>Published filings from companies in your website will appear here, grouped by date.</p></div></div><div id="listFooter" class="list-footer"></div></section>
+      <aside id="research" class="research" aria-label="Selected company and reaction research"><div class="empty-state research-empty"><span class="empty-symbol">◎</span><h2>One result. The whole context.</h2><p>Select a company to compare its quarter and examine similar past announcements.</p><div class="empty-stages"><span>09:15–09:30</span><span>09:30–09:40</span><span>09:40–10:00</span></div><small>The opening-rise → pullback → recovery sequence is a hypothesis to test, not an assumed rule.</small></div></aside>
+    </div>
+    <section class="methodology"><div><span class="eyebrow">HOW TO READ THIS DESK</span><h2>Good results don’t guarantee a green session.</h2></div><p>Growth is compared only across matching reporting periods and accounting scope. Historical reactions use timestamped observations; gaps in the dataset stay visible. A watch setup requires enough prior evidence and current price confirmation. Missing evidence means wait.</p><div class="methodology-links"><a href="https://www.nseindia.com/companies-listing/corporate-filings-financial-results" target="_blank" rel="noopener noreferrer">NSE financial results ↗</a><a href="https://www.nseindia.com/companies-listing/corporate-filings-announcements" target="_blank" rel="noopener noreferrer">NSE company announcements ↗</a></div></section>
+    <footer><span><span class="status-dot"></span> Zien Quant · Results & reactions</span><span>Conditional research · No trades are placed.</span><span>Browser refresh: every 60 seconds</span></footer>
+  </main>
+</div>
+</body>
+</html>

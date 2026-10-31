@@ -625,7 +625,12 @@ function renderTrajectories(trajectories, stocks) {
   const W = 1000;
   const H = 500;
   const padLeft = 60;
-  const padRight = 130;
+  // Keep room for the company label, optional margin star and percentage.
+  const endpointPillWidth = t => {
+    const changeText = (t.change_pct >= 0 ? '+' : '') + t.change_pct.toFixed(2) + '%';
+    return Math.max(94, Math.ceil(24 + String(t.symbol).length * 5.8 + changeText.length * 5.8));
+  };
+  const padRight = Math.max(130, ...trajectories.map(t => endpointPillWidth(t) + 16));
   const padTop = 30;
   const padBottom = 30;
 
@@ -782,13 +787,14 @@ function renderTrajectories(trajectories, stocks) {
     const lastY = toY(points[n - 1]);
     const chgStr = (t.change_pct >= 0 ? '+' : '') + t.change_pct.toFixed(2) + '%';
     const pillColor = isBull ? 'var(--bull-primary)' : 'var(--bear-primary)';
+    const pillWidth = endpointPillWidth(t);
 
     endpHtml += `
       <g class="endpoint-group ${isHovered ? 'highlighted' : ''} ${isDimmed ? 'dimmed' : ''}" data-symbol="${t.symbol}" transform="translate(${lastX + 6}, ${lastY})">
         <circle cx="0" cy="0" r="3.5" fill="${pillColor}"/>
-        <rect x="6" y="-9" width="82" height="18" rx="4" class="endpoint-bg" stroke="${pillColor}" stroke-opacity="0.4"/>
-        <text x="12" y="0" class="endpoint-text" fill="${pillColor}">${t.symbol}</text>
-        <text x="82" y="0" class="endpoint-text" fill="var(--text-main)" text-anchor="end">${chgStr}</text>
+        <rect x="6" y="-9" width="${pillWidth}" height="18" rx="4" class="endpoint-bg" stroke="${pillColor}" stroke-opacity="0.4"/>
+        <text x="12" y="0" class="endpoint-text" data-margin-symbol="${escapeHtml(t.symbol)}" fill="${pillColor}">${t.symbol}</text>
+        <text x="${pillWidth}" y="0" class="endpoint-text" fill="var(--text-main)" text-anchor="end">${chgStr}</text>
       </g>
     `;
   }
@@ -867,7 +873,9 @@ function showStockHUD(symbol, clientX, clientY) {
   const isPos = stock.change_pct >= 0;
 
   el.hudSym.textContent = stock.symbol;
+  el.hudSym.dataset.marginSymbol = stock.symbol;
   el.hudName.textContent = stock.name;
+  el.hudName.dataset.marginSymbol = stock.symbol;
   el.hudBadge.textContent = signal;
   el.hudBadge.className = `hud-signal-badge ${signal.toLowerCase()}`;
 
@@ -1006,8 +1014,8 @@ function renderSignalTiles(tiles) {
       <div class="matrix-card ${isBull ? 'bull-card' : 'bear-card'}" data-symbol="${s.symbol}">
         <div class="m-card-top">
           <div class="m-sym-group">
-            <span class="m-sym">${s.symbol}</span>
-            <span class="m-name">${escapeHtml(s.name || s.symbol)}</span>
+            <span class="m-sym" data-margin-symbol="${escapeHtml(s.symbol)}">${s.symbol}</span>
+            <span class="m-name" data-margin-symbol="${escapeHtml(s.symbol)}">${escapeHtml(s.name || s.symbol)}</span>
           </div>
           <span class="m-tag ${isBull ? 'bull' : 'bear'}">
             ${isBull ? 'LONG BUILD-UP' : 'SHORT BUILD-UP'}
@@ -1069,8 +1077,8 @@ function renderSpotlight(spotlight) {
               <span>${isBull ? 'BULLISH' : 'BEARISH'}</span>
             </span>
             <div class="hero-name-block">
-              <span class="hero-sym">${s.symbol}</span>
-              <span class="hero-full-name">${escapeHtml(s.name || s.symbol)}</span>
+              <span class="hero-sym" data-margin-symbol="${escapeHtml(s.symbol)}">${s.symbol}</span>
+              <span class="hero-full-name" data-margin-symbol="${escapeHtml(s.symbol)}">${escapeHtml(s.name || s.symbol)}</span>
             </div>
           </div>
           <div class="hero-chart-area">
@@ -1246,8 +1254,8 @@ function renderScannerTable(stocksDict) {
         <td class="th-fav">
           <button class="star-btn ${isStarred ? 'starred' : ''}" data-symbol="${s.symbol}" title="Add to Watchlist">★</button>
         </td>
-        <td class="sym-col font-bold">${s.symbol}</td>
-        <td>${escapeHtml(s.name || s.symbol)}</td>
+        <td class="sym-col font-bold" data-margin-symbol="${escapeHtml(s.symbol)}">${s.symbol}</td>
+        <td data-margin-symbol="${escapeHtml(s.symbol)}">${escapeHtml(s.name || s.symbol)}</td>
         <td><span class="sector-tag">${escapeHtml(s.sector || 'N/A')}</span></td>
         <td colspan="11" class="text-center font-mono text-xs text-rose-400 font-semibold py-2">
           ⚠️ DATA UNAVAILABLE: ${reason}
@@ -1282,8 +1290,8 @@ function renderScannerTable(stocksDict) {
         <td class="th-fav">
           <button class="star-btn ${isStarred ? 'starred' : ''}" data-symbol="${s.symbol}" title="Add to Watchlist">★</button>
         </td>
-        <td class="sym-col">${s.symbol}</td>
-        <td>${escapeHtml(s.name || s.symbol)}</td>
+        <td class="sym-col" data-margin-symbol="${escapeHtml(s.symbol)}">${s.symbol}</td>
+        <td data-margin-symbol="${escapeHtml(s.symbol)}">${escapeHtml(s.name || s.symbol)}</td>
         <td><span class="sector-tag">${escapeHtml(s.sector || 'N/A')}</span></td>
         <td class="text-right mono-val">₹${s.price.toLocaleString('en-IN', { minimumFractionDigits: 2 })}</td>
         <td class="text-right mono-val ${dayPos ? 'pos' : 'neg'}" style="color:${dayPos ? 'var(--bull-primary)' : 'var(--bear-primary)'}">${dayPos ? '+' : ''}${s.change_pct.toFixed(2)}%</td>
@@ -1331,6 +1339,7 @@ async function openChartModal(symbol) {
   if (!stock) return;
 
   el.modalStockTitle.textContent = `${stock.symbol} · ${stock.name}`;
+  el.modalStockTitle.dataset.marginSymbol = stock.symbol;
   el.modalSector.textContent = stock.sector;
 
   updateModalDiagnostics(stock);
@@ -1557,6 +1566,7 @@ function updateCopilotContext(stock) {
   if (!stock) return;
   if (el.drawerContextStock) {
     el.drawerContextStock.textContent = `${stock.symbol} · ₹${stock.price.toFixed(2)} (${stock.change_pct >= 0 ? '+' : ''}${stock.change_pct.toFixed(2)}%)`;
+    el.drawerContextStock.dataset.marginSymbol = stock.symbol;
   }
   const ai = stock.ai_decision;
   if (ai && el.drawerContextAction) {
@@ -2081,8 +2091,8 @@ function bindEvents() {
         html += res.stocks.map(s => `
           <div class="search-dropdown-item" data-sym="${s.symbol}">
             <div class="search-item-left">
-              <span class="search-item-sym">${s.symbol}</span>
-              <span class="search-item-name" title="${escapeHtml(s.name || s.symbol)}">${escapeHtml(s.name || s.symbol)}</span>
+              <span class="search-item-sym" data-margin-symbol="${escapeHtml(s.symbol)}">${s.symbol}</span>
+              <span class="search-item-name" data-margin-symbol="${escapeHtml(s.symbol)}" title="${escapeHtml(s.name || s.symbol)}">${escapeHtml(s.name || s.symbol)}</span>
             </div>
             <div class="search-item-right">
               <span class="search-badge-sec">${s.sector}</span>
@@ -2154,8 +2164,8 @@ function bindEvents() {
           html += res.stocks.map(s => `
             <div class="search-dropdown-item" data-sym="${s.symbol}">
               <div class="search-item-left">
-                <span class="search-item-sym">${s.symbol}</span>
-                <span class="search-item-name" title="${escapeHtml(s.name || s.symbol)}">${escapeHtml(s.name || s.symbol)}</span>
+                <span class="search-item-sym" data-margin-symbol="${escapeHtml(s.symbol)}">${s.symbol}</span>
+                <span class="search-item-name" data-margin-symbol="${escapeHtml(s.symbol)}" title="${escapeHtml(s.name || s.symbol)}">${escapeHtml(s.name || s.symbol)}</span>
               </div>
               <div class="search-item-right">
                 <span class="search-badge-sec">${s.sector}</span>

@@ -1,0 +1,108 @@
+{
+  "version": "atr-watchlist-v1",
+  "enabled": true,
+  "capital": 300000.0,
+  "risk_per_trade": 0.01,
+  "leverage": 5.0,
+  "max_capital_per_trade": 100000.0,
+  "atr_period": 14,
+  "k_sl": 1.0,
+  "k_tp": 2.0,
+  "min_rr": 1.5,
+  "entry_policy": "zone_midpoint",
+  "entry_valid_minutes": 15,
+  "square_off": "15:15",
+  "report_time": "15:35",
+  "time_stop_minutes": 90,
+  "trailing_enabled": false,
+  "trailing_atr": 1.0,
+  "reversal_enabled": false,
+  "flip_enabled": false,
+  "reversal_confidence": 80.0,
+  "timeframe_minutes": 5,
+  "max_candle_lag_seconds": 600,
+  "slippage_bps": 5.0,
+  "fees": {
+    "brokerage_rate": 0.0003,
+    "brokerage_cap": 20.0,
+    "stt_sell_rate": 0.00025,
+    "exchange_rate": 3.07e-05,
+    "sebi_rate": 1e-06,
+    "gst_rate": 0.18,
+    "stamp_buy_rate": 3e-05
+  },
+  "what_if": [
+    {
+      "name": "wider_stop",
+      "k_sl": 1.3,
+      "k_tp": 2.0,
+      "trailing_enabled": false
+    },
+    {
+      "name": "tighter_stop",
+      "k_sl": 0.8,
+      "k_tp": 2.0,
+      "trailing_enabled": false
+    },
+    {
+      "name": "higher_target",
+      "k_sl": 1.0,
+      "k_tp": 2.5,
+      "trailing_enabled": false
+    },
+    {
+      "name": "lower_target",
+      "k_sl": 1.0,
+      "k_tp": 1.5,
+      "trailing_enabled": false
+    },
+    {
+      "name": "trailing_on",
+      "k_sl": 1.0,
+      "k_tp": 2.0,
+      "trailing_enabled": true
+    }
+  ],
+  "assumptions": [
+    "EXPERIMENTAL PAPER ONLY; no Kite client or real order execution.",
+    "The existing decision engine and its R:R gate are preserved. Simulation levels are independently labelled ATR multiples from the entry-zone midpoint.",
+    "Closed sourced candles only. Decision candle never fills its own signal. Entry candle cannot claim an intrabar target: stop has priority; target begins on later candles.",
+    "A pending touch models a limit entry. A favorable opening gap fills at the better opening price before adverse slippage; missing gaps are not interpolated.",
+    "Both stop and target inside one candle: STOPLOSS wins. Trailing levels update only after that candle's exits have been checked.",
+    "15:15 square-off uses the close of the candle ENDING at 15:15, not a future candle beginning then. Missing boundary candle yields CLOSED with no exit fill and unknown P&L.",
+    "5x leverage is an assumed simulation ceiling, not a claim of instrument eligibility or broker margin availability. Reserve margin on pending and open positions for either side.",
+    "Risk cap constrains planned stop loss including configured adverse slippage and estimated fees, not unforeseen gaps or future tax changes.",
+    "Fees are configurable approximations; contract-note rounding, IPFT, special charges and changing exchange tariffs may differ. Source: https://zerodha.com/charges/ (checked 30 Oct 2026).",
+    "Gross P&L uses simulated slipped fills; net=gross-fees. Slippage is disclosed separately against raw fills and is never deducted twice.",
+    "Hindsight, MFE and parameter replays are hypothetical and have no predictive validity. Incomplete candle coverage suppresses affected statistics.",
+    "Live calendar: published 2026 NSE regular sessions only; holidays/weekends blocked. Nov 8 announced special-session hours are not configured, so that session is blocked. Years without a published installed calendar fail closed."
+  ],
+  "calendar": {
+    "year": 2026,
+    "verified_at": "2026-10-30",
+    "source": "https://www.nseindia.com/resources/exchange-communication-holidays?apiversion=v2",
+    "holidays": [
+      "2026-01-15",
+      "2026-01-26",
+      "2026-03-03",
+      "2026-03-26",
+      "2026-03-31",
+      "2026-04-03",
+      "2026-04-14",
+      "2026-05-01",
+      "2026-05-28",
+      "2026-06-26",
+      "2026-09-14",
+      "2026-10-02",
+      "2026-10-20",
+      "2026-11-10",
+      "2026-11-24",
+      "2026-12-25"
+    ],
+    "unconfigured_special_sessions": [
+      "2026-11-08"
+    ],
+    "regular_open": "09:15",
+    "conservative_end": "15:15"
+  }
+}

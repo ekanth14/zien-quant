@@ -109,3 +109,4 @@ Analysis and market-pulse caches include their session/calculation identity.
 
 Implementation references: [Ollama create](https://docs.ollama.com/api/create)
 and [Supertrend calculation](https://www.tradingview.com/support/solutions/43000634738-supertrend/).
+

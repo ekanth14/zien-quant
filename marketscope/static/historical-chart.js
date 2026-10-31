@@ -48,9 +48,12 @@ export function createHistoricalChart({ api }) {
     state.open = open;
     panel.hidden = !open;
     backdrop.hidden = !open;
+    if (open) panel.setAttribute('aria-modal', 'true');
+    else panel.removeAttribute('aria-modal');
     document.body.classList.toggle('history-panel-open', open);
     if (open) {
       requestAnimationFrame(() => {
+        if (!state.open) return;
         $('#historySymbolSearch').focus({ preventScroll: true });
         drawCharts();
       });
@@ -502,6 +505,35 @@ export function createHistoricalChart({ api }) {
   }
 
   function bind() {
+    panel.setAttribute('role', 'dialog');
+    panel.setAttribute('tabindex', '-1');
+    panel.addEventListener('keydown', event => {
+      if (!state.open) return;
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        event.stopPropagation();
+        setPanelOpen(false);
+        return;
+      }
+      if (event.key !== 'Tab') return;
+      const controls = $$('a[href], button, input, select, textarea, [tabindex]', panel)
+        .filter(element => !element.disabled && element.type !== 'hidden'
+          && element.getAttribute('tabindex') !== '-1'
+          && !element.closest('[hidden], [aria-hidden="true"]')
+          && (typeof element.getClientRects !== 'function' || element.getClientRects().length > 0));
+      const first = controls[0];
+      const last = controls[controls.length - 1];
+      if (!first) {
+        event.preventDefault();
+        panel.focus({ preventScroll: true });
+      } else if (event.shiftKey && (document.activeElement === first || document.activeElement === panel)) {
+        event.preventDefault();
+        last.focus({ preventScroll: true });
+      } else if (!event.shiftKey && (document.activeElement === last || document.activeElement === panel)) {
+        event.preventDefault();
+        first.focus({ preventScroll: true });
+      }
+    });
     $('#historyClose').onclick = () => setPanelOpen(false);
     backdrop.onclick = () => setPanelOpen(false);
     $('#historyExpand').onclick = () => setExpanded(!state.expanded);

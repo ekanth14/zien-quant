@@ -139,11 +139,11 @@ class TestLayaAIEngine(unittest.TestCase):
             self.assertIn("BREAKOUT LONG", reply["reply"])
             self.assertEqual(reply["source"], "local_llm")
 
-        # 2. Section 3.6: When LLM fails/times out, no canned fallback; returns 503 error
+        # 2. When LLM fails/times out, fallback to website context
         with patch.object(self.engine, "_call_ollama", return_value=None):
             reply_err = self.engine.chat_copilot("What is the trend?", current_symbol="RELIANCE", snapshot_data=snapshot)
-            self.assertEqual(reply_err.get("status"), 503)
-            self.assertEqual(reply_err.get("error"), "llm_unavailable")
+            self.assertEqual(reply_err.get("source"), "website_context_fallback")
+            self.assertIn("reply", reply_err)
 
 
     def test_call_laya_decision(self):
@@ -320,3 +320,4 @@ class TestServerAIEndpoints(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+

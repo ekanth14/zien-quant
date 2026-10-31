@@ -5,6 +5,7 @@ actively trading on the National Stock Exchange of India (NSE) and Bombay Stock 
 """
 
 from __future__ import annotations
+from contextlib import contextmanager
 import csv
 import io
 import logging
@@ -93,10 +94,15 @@ class StockDatabaseManager:
         self._lock = threading.Lock()
         self._init_schema()
 
-    def _get_connection(self) -> sqlite3.Connection:
+    @contextmanager
+    def _get_connection(self):
         conn = sqlite3.connect(str(self.db_path), check_same_thread=False)
         conn.row_factory = sqlite3.Row
-        return conn
+        try:
+            with conn:
+                yield conn
+        finally:
+            conn.close()
 
     def _init_schema(self) -> None:
         with self._lock, self._get_connection() as conn:
@@ -119,6 +125,11 @@ class StockDatabaseManager:
             conn.execute("CREATE INDEX IF NOT EXISTS idx_stocks_sector ON stocks(sector);")
             conn.execute("CREATE INDEX IF NOT EXISTS idx_stocks_exchange ON stocks(exchange);")
             conn.commit()
+
+    def get_all_symbols(self) -> set[str]:
+        """Return the stored catalogue scope without triggering an upstream import."""
+        with self._get_connection() as connection:
+            return {row[0] for row in connection.execute("SELECT symbol FROM stocks")}
 
     def get_stock_count(self) -> int:
         with self._get_connection() as conn:
@@ -270,3 +281,4 @@ def get_stock_database() -> StockDatabaseManager:
         if _stock_db.get_stock_count() == 0:
             threading.Thread(target=_stock_db.populate_from_nse_master, daemon=True).start()
     return _stock_db
+

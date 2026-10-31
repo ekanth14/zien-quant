@@ -466,3 +466,4 @@ def rank_daily_stocks(
         result["best"], result["worst"] = best_candidate, worst_candidate
         result["as_of"] = candidates[0]["as_of"]
     return result
+

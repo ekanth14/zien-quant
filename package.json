@@ -5,7 +5,7 @@
   "type": "module",
   "description": "Development-only DOM and API contract tests; no frontend runtime dependencies.",
   "scripts": {
-    "test": "node --experimental-vm-modules --test tests/workspace-api.test.mjs tests/workspace-ui.test.mjs"
+    "test": "node --experimental-vm-modules --test tests/workspace-api.test.mjs tests/workspace-ui.test.mjs tests/paper-ui.test.mjs tests/paper-watchlist-ui.test.mjs tests/quant-research-ui.test.mjs tests/results-ui.test.mjs tests/historical-accessibility.test.mjs"
   },
   "devDependencies": {
     "linkedom": "0.18.12"
