@@ -1,0 +1,241 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark light">
+  <meta name="description" content="IPO & New Listings Tracker — Monitor upcoming IPOs, fresh market admissions, and keep track of newly listed companies before market open.">
+  <title>IPO & New Listings Desk · Zien Quant</title>
+  <link rel="icon" href="/static/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/static/results.css">
+  <link rel="stylesheet" href="/static/ipo.css">
+  <link rel="stylesheet" href="/static/stock-badges.css">
+  <script type="module" src="/static/ipo.js"></script>
+</head>
+<body>
+<a class="skip-link" href="#ipoListings">Skip to IPO listings</a>
+
+<aside class="sidebar" id="ipoNavigation">
+  <a class="brand" href="/"><span class="brand-mark">z↗</span><span>Zien Quant</span></a>
+  <div class="workspace"><span class="workspace-icon">IN</span><div>India Primary Market<small>NSE &amp; BSE New Equities</small></div></div>
+  <nav aria-label="Workspace navigation">
+    <div class="nav-label">MARKET</div>
+    <a href="/"><span aria-hidden="true">▦</span> Market overview</a>
+    <a href="/#scanner"><span aria-hidden="true">⌁</span> Stock scanner</a>
+    <a href="/#watchlist"><span aria-hidden="true">☆</span> Watchlist</a>
+    <div class="nav-label">PRIMARY MARKET &amp; RESULTS</div>
+    <a href="/ipo.html" class="active" aria-current="page"><span aria-hidden="true">★</span> IPO &amp; New Listings <i>ACTIVE</i></a>
+    <a href="/results.html"><span aria-hidden="true">◷</span> Results &amp; reactions</a>
+    <div class="nav-label">SIMULATION &amp; PAPER</div>
+    <a href="/#paperwatch"><span aria-hidden="true">⇄</span> Paper positions <i>SIM</i></a>
+    <a href="/#paper-report"><span aria-hidden="true">▤</span> Performance report</a>
+    <a href="/#paper"><span aria-hidden="true">◉</span> Paper reaction lab</a>
+    <div class="nav-label">RESEARCH &amp; TOOLS</div>
+    <a href="/#research"><span aria-hidden="true">∑</span> Quant research</a>
+    <a href="/#methodology"><span aria-hidden="true">⊞</span> Methodology</a>
+    <a href="/flow"><span aria-hidden="true">≋</span> Flow River ↗</a>
+  </nav>
+  <div class="sidebar-foot">
+    <span class="little-orbit" aria-hidden="true"></span>
+    <strong>Pre-Market Discovery.</strong>
+    <p>All newly listed shares are automatically synchronized before 09:15 IST opening bell.</p>
+    <a href="#preMarketSync">Check sync schedule ↗</a>
+  </div>
+</aside>
+
+<div class="shell">
+  <header class="topbar">
+    <button id="ipoMobileMenu" class="mobile-menu" type="button" aria-label="Open workspace navigation" aria-controls="ipoNavigation" aria-expanded="false">☰</button>
+    <a class="mobile-brand" href="/" aria-label="Zien Quant overview">z↗</a>
+    <span>Workspace <b>/</b> <strong>IPO &amp; New Listings Tracker</strong></span>
+    <a href="/" class="back-link">Back to market ↗</a>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div>
+        <span class="eyebrow">PRIMARY MARKET &amp; LISTINGS DESK</span>
+        <h1>IPO &amp; New Listings Tracker</h1>
+        <p>Monitor newly admitted companies, upcoming IPO pipelines, and track equities with personal targets &amp; research notes.</p>
+        <div class="ipo-hero-stats">
+          <div class="ipo-hero-stat"><span>Universe:</span> <strong id="heroTotalUniverse">2,613+ Equities</strong></div>
+          <div class="ipo-hero-stat"><span>Pre-Market Routine:</span> <strong>08:30 IST Daily</strong></div>
+          <div class="ipo-hero-stat"><span>Market Open:</span> <strong>09:15 IST</strong></div>
+        </div>
+      </div>
+      <div>
+        <button id="btnSyncNewShares" class="sync-button" title="Synchronize all newly listed shares before market open">
+          <span aria-hidden="true">⚡</span> Sync New Shares Pre-Market
+        </button>
+      </div>
+    </section>
+
+    <!-- Pre-Market Status Banner -->
+    <section id="preMarketSync" class="source-bar" aria-label="Pre-Market Sync Status">
+      <div>
+        <span id="syncDot" class="status-dot"></span>
+        <strong id="syncStatusTitle">Pre-Market Synchronizer Active</strong>
+        <span id="sourceDescription">Scheduled daily at 08:30 IST to discover new listings before 09:15 IST open</span>
+      </div>
+      <div class="sync-status-badge">
+        <span id="syncBadgeText">READY FOR 09:15 IST</span>
+      </div>
+      <div class="source-times">
+        <span id="lastSyncLabel">Last Synchronized: Checking…</span>
+        <span id="nextSyncLabel">Next Scheduled Sync: 08:30 IST Tomorrow</span>
+      </div>
+    </section>
+
+    <div id="noticeBanner" class="notice warning" role="status" hidden></div>
+
+    <!-- Summary Metrics Grid -->
+    <section class="summary-grid" aria-label="IPO Overview Metrics">
+      <article>
+        <span>TOTAL LISTINGS &amp; IPOS</span>
+        <strong id="statTotalListings">—</strong>
+        <small>Admitted equities &amp; upcoming pipeline</small>
+      </article>
+      <article>
+        <span>⭐ MY TRACKED IPOS</span>
+        <strong id="statTrackedCount" class="blue">0</strong>
+        <small>Companies you are monitoring</small>
+      </article>
+      <article>
+        <span>FRESH 2026 DEBUTS</span>
+        <strong id="stat2026Count" class="green" style="color:var(--green)">—</strong>
+        <small>Debuts on NSE &amp; BSE in 2026</small>
+      </article>
+      <article>
+        <span>UPCOMING PIPELINE</span>
+        <strong id="statUpcomingCount" class="amber">—</strong>
+        <small>Awaiting formal listing date</small>
+      </article>
+    </section>
+
+    <!-- Filter Tabs -->
+    <div class="filter-tabs" role="tablist" aria-label="IPO Categories">
+      <button class="filter-tab active" data-filter="all" role="tab" aria-selected="true">
+        All IPOs &amp; Listings <span class="badge" id="badgeAll">0</span>
+      </button>
+      <button class="filter-tab" data-filter="tracked" role="tab" aria-selected="false">
+        ⭐ My Tracked IPOs <span class="badge" id="badgeTracked">0</span>
+      </button>
+      <button class="filter-tab" data-filter="recent_2026" role="tab" aria-selected="false">
+        Fresh 2026 Debuts <span class="badge" id="badge2026">0</span>
+      </button>
+      <button class="filter-tab" data-filter="recent_month" role="tab" aria-selected="false">
+        October 2026 Listings <span class="badge" id="badgeMonth">0</span>
+      </button>
+      <button class="filter-tab" data-filter="upcoming" role="tab" aria-selected="false">
+        Upcoming Pipeline <span class="badge" id="badgeUpcoming">0</span>
+      </button>
+    </div>
+
+    <!-- Search & Sort Bar -->
+    <form id="ipoFilterForm" class="filters" aria-label="Search and sort listings">
+      <label class="search-label">
+        <span class="sr-only">Search company, symbol, or sector</span>
+        <span aria-hidden="true">⌕</span>
+        <input id="ipoSearchInput" type="search" placeholder="Search by symbol, company name, or sector (e.g. BONFIG, ZETWERK, Defense, Tech)…" autocomplete="off">
+      </label>
+      <label>Sort by
+        <select id="ipoSortSelect">
+          <option value="date_desc">Listing Date (Newest First)</option>
+          <option value="date_asc">Listing Date (Oldest First)</option>
+          <option value="symbol">Symbol (A–Z)</option>
+          <option value="sector">Sector</option>
+        </select>
+      </label>
+      <button type="button" id="btnResetFilters" class="button">Reset</button>
+    </form>
+
+    <!-- Listings Grid Container -->
+    <section id="ipoListings" aria-label="Listings Catalogue">
+      <div id="loadingIndicator" class="empty-state">
+        <span class="loading-ring" aria-hidden="true"></span>
+        <h3>Discovering IPOs and New Equities</h3>
+        <p>Reading exchange listings and active master database…</p>
+      </div>
+
+      <div id="ipoCardsGrid" class="ipo-grid" hidden></div>
+
+      <div id="noResultsState" class="empty-state" hidden>
+        <span class="empty-symbol">☆</span>
+        <h3>No companies found</h3>
+        <p id="noResultsText">No companies matched your current search and filter criteria.</p>
+      </div>
+    </section>
+
+    <!-- Methodology & Pre-Market Briefing -->
+    <section class="methodology" style="margin-top:32px;">
+      <div>
+        <span class="eyebrow">PRE-MARKET INGESTION PROTOCOL</span>
+        <h2>How new shares are added before 09:15 market open</h2>
+      </div>
+      <div>
+        <p>
+          Before Indian equities commence trading at <strong>09:15 IST</strong> (pre-open call auction 09:00–09:08 IST),
+          the <strong>Pre-Market Sync Engine</strong> polls exchange circulars, master security databases, and listing notifications at <strong>08:30 IST</strong>.
+        </p>
+        <p style="margin-top:8px;">
+          Newly listed shares are automatically assigned ISINs, indexed into the active trading universe, and given instant chart and formula scoring hydration.
+          Use the <strong>"Track Company"</strong> feature to keep notes, price targets, and observe initial trading sessions without losing context.
+        </p>
+      </div>
+      <div class="methodology-links">
+        <a href="https://www.nseindia.com/market-data/all-upcoming-issues-ipo" target="_blank" rel="noopener noreferrer">NSE Current &amp; Upcoming IPOs ↗</a>
+        <a href="https://www.bseindia.com/publicissue.html" target="_blank" rel="noopener noreferrer">BSE Public Issues Desk ↗</a>
+        <a href="/#methodology">Signal Methodology &amp; CPR Formulas ↗</a>
+      </div>
+    </section>
+
+    <footer>
+      <span><span class="status-dot"></span> Zien Quant · IPO &amp; Primary Market Tracker</span>
+      <span>NSE &amp; BSE New Shares Synchronizer · Pre-market ready</span>
+      <span>Updated automatically</span>
+    </footer>
+  </main>
+</div>
+
+<!-- Tracking & Personal Notes Modal -->
+<div id="trackModal" class="modal-overlay" hidden>
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+    <div class="modal-header">
+      <h3 id="modalTitle">Track IPO Company</h3>
+      <button id="modalCloseBtn" class="button" style="padding:4px 8px;border:none;">✕</button>
+    </div>
+    <div class="modal-body">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <div id="modalIcon" class="ipo-icon">★</div>
+        <div>
+          <strong id="modalSymbol" style="font-size:16px;">SYMBOL</strong>
+          <small id="modalName" style="display:block;color:var(--muted);">Company Name</small>
+        </div>
+      </div>
+
+      <label>
+        Target Price (₹)
+        <input type="number" id="modalTargetPrice" placeholder="e.g. 520.00" step="0.05">
+      </label>
+
+      <label>
+        Personal Notes &amp; Strategy
+        <textarea id="modalNotes" rows="3" placeholder="e.g. Key triggers, valuation notes, breakout level, stop loss plan…"></textarea>
+      </label>
+
+      <label style="flex-direction:row;align-items:center;gap:8px;">
+        <input type="checkbox" id="modalAlert" checked>
+        <span>Highlight in active watchlist &amp; morning scanners</span>
+      </label>
+    </div>
+    <div class="modal-actions">
+      <button id="modalUntrackBtn" class="button" style="color:var(--red);border-color:#ff829a33;" type="button">Untrack</button>
+      <button id="modalSaveBtn" class="button primary" type="button">Save Tracking</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast" class="toast" hidden></div>
+
+</body>
+</html>

@@ -1,0 +1,423 @@
+/* IPO & New Listings Desk Styling */
+:root {
+  --green: #00d084;
+  --green-glow: #00d08440;
+  --gold: #f5a623;
+  --gold-glow: #f5a62340;
+  --purple: #a855f7;
+}
+
+.ipo-hero-stats {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+
+.ipo-hero-stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.ipo-hero-stat strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.sync-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--green);
+  background: #00d08415;
+  border: 1px solid #00d08433;
+  padding: 4px 10px;
+  border-radius: 20px;
+}
+
+.sync-button {
+  background: linear-gradient(135deg, #1b3d68, #2a5a9c);
+  color: #fff;
+  border: 1px solid var(--blue);
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.sync-button:hover:not(:disabled) {
+  background: linear-gradient(135deg, #234d82, #3572c4);
+  box-shadow: 0 0 12px rgba(53, 137, 255, 0.4);
+}
+
+.filter-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 18px 0 14px;
+}
+
+.filter-tab {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  color: var(--muted);
+  border-radius: 6px;
+  padding: 8px 14px;
+  font-size: 12px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+}
+
+.filter-tab:hover {
+  background: var(--panel-2);
+  color: var(--text);
+}
+
+.filter-tab.active {
+  background: #3589ff20;
+  color: var(--blue);
+  border-color: var(--blue);
+  font-weight: 600;
+}
+
+.filter-tab .badge {
+  background: var(--panel-2);
+  color: var(--text);
+  padding: 2px 6px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-family: var(--mono);
+}
+
+.filter-tab.active .badge {
+  background: var(--blue);
+  color: #07101c;
+}
+
+.ipo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
+  gap: 16px;
+  margin-top: 16px;
+}
+
+.ipo-card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  position: relative;
+  transition: border-color 0.2s, transform 0.2s;
+}
+
+.ipo-card:hover {
+  border-color: #3b577d;
+  transform: translateY(-2px);
+}
+
+.ipo-card.is-tracked {
+  border-color: #f5a62366;
+  box-shadow: 0 0 15px rgba(245, 166, 35, 0.08);
+}
+
+.ipo-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.ipo-symbol-group {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ipo-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  display: grid;
+  place-items: center;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--blue);
+}
+
+.ipo-card.is-tracked .ipo-icon {
+  color: var(--gold);
+  border-color: var(--gold-glow);
+}
+
+.ipo-title {
+  display: flex;
+  flex-direction: column;
+}
+
+.ipo-symbol {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: 0.5px;
+}
+
+.ipo-name {
+  font-size: 11px;
+  color: var(--muted);
+  max-width: 220px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.status-badge {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 4px;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
+
+.status-badge.upcoming {
+  background: #f5a62322;
+  color: var(--gold);
+  border: 1px solid var(--gold-glow);
+}
+
+.status-badge.fresh {
+  background: #00d08422;
+  color: var(--green);
+  border: 1px solid var(--green-glow);
+}
+
+.status-badge.listed {
+  background: #3589ff22;
+  color: var(--blue);
+  border: 1px solid #3589ff44;
+}
+
+.ipo-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  background: var(--bg);
+  padding: 10px 12px;
+  border-radius: 6px;
+  border: 1px solid #1a2738;
+}
+
+.ipo-metric-cell {
+  display: flex;
+  flex-direction: column;
+}
+
+.ipo-metric-label {
+  font-size: 9px;
+  color: var(--dim);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.ipo-metric-val {
+  font-size: 13px;
+  font-family: var(--mono);
+  font-weight: 600;
+  color: var(--text);
+  margin-top: 2px;
+}
+
+.ipo-metric-val.gain-pos {
+  color: var(--green);
+}
+
+.ipo-metric-val.gain-neg {
+  color: var(--red);
+}
+
+.ipo-notes-box {
+  background: #19253555;
+  border-left: 3px solid var(--gold);
+  padding: 8px 10px;
+  border-radius: 0 4px 4px 0;
+  font-size: 11px;
+  color: #f7dfb0;
+  line-height: 1.5;
+}
+
+.ipo-notes-box strong {
+  color: var(--gold);
+  display: block;
+  font-size: 10px;
+  margin-bottom: 2px;
+}
+
+.ipo-card-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 8px;
+  border-top: 1px solid var(--line);
+}
+
+.track-btn {
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 11px;
+  padding: 6px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.2s;
+}
+
+.track-btn:hover {
+  border-color: var(--gold);
+  color: var(--gold);
+}
+
+.track-btn.is-active {
+  background: #f5a6231a;
+  border-color: var(--gold);
+  color: var(--gold);
+  font-weight: 600;
+}
+
+.chart-link {
+  font-size: 11px;
+  color: var(--blue);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.chart-link:hover {
+  text-decoration: underline;
+}
+
+/* Modal Dialog */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+}
+
+.modal-card {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  width: 100%;
+  max-width: 480px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+  overflow: hidden;
+}
+
+.modal-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.modal-header h3 {
+  margin: 0;
+  font-size: 16px;
+  color: var(--text);
+}
+
+.modal-body {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.modal-body label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.modal-body input,
+.modal-body textarea {
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  padding: 10px 12px;
+  color: var(--text);
+  font-family: inherit;
+  font-size: 13px;
+}
+
+.modal-body input:focus,
+.modal-body textarea:focus {
+  outline: none;
+  border-color: var(--blue);
+}
+
+.modal-actions {
+  padding: 16px 20px;
+  border-top: 1px solid var(--line);
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  background: var(--panel-2);
+  border: 1px solid var(--green);
+  color: var(--text);
+  padding: 12px 20px;
+  border-radius: 8px;
+  font-size: 13px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}

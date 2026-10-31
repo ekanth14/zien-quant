@@ -75,6 +75,7 @@ from earnings_research import analyze_event
 from paper_trading import get_paper_session
 from paper_watchlist import get_paper_watchlist
 from intraday_margins import get_intraday_margins
+from ipo_service import get_ipo_service
 from fyers_history import (
     FyersHistoryAuthError,
     FyersHistoryError,
@@ -316,6 +317,9 @@ class MarketScopeHandler(BaseHTTPRequestHandler):
         elif path in ("/results", "/results/"):
             self._serve_static_file("results.html")
             return
+        elif path in ("/ipo", "/ipo/", "/ipo.html"):
+            self._serve_static_file("ipo.html")
+            return
 
         # Research is read-only: no strategy activation or broker execution route.
         if path == "/api/research/strategies":
@@ -390,6 +394,10 @@ class MarketScopeHandler(BaseHTTPRequestHandler):
             self._handle_result_detail(query)
         elif path == "/api/results/status":
             self._send_json(get_results_service().status())
+        elif path == "/api/ipo/listings":
+            self._handle_ipo_listings(query)
+        elif path == "/api/ipo/sync":
+            self._handle_ipo_sync()
         elif path == "/api/admin":
             self._handle_admin()
         elif path == "/api/admin/audit-logs":
@@ -509,6 +517,12 @@ class MarketScopeHandler(BaseHTTPRequestHandler):
             self._handle_stocks_track()
         elif path == "/api/stocks/untrack":
             self._handle_stocks_untrack()
+        elif path == "/api/ipo/track":
+            self._handle_ipo_track()
+        elif path == "/api/ipo/untrack":
+            self._handle_ipo_untrack()
+        elif path == "/api/ipo/sync":
+            self._handle_ipo_sync()
         else:
             self._send_json({"error": "Unknown POST route"}, status=404)
 
@@ -1709,6 +1723,64 @@ class MarketScopeHandler(BaseHTTPRequestHandler):
             "total_monitored": len(scraper.monitored_symbols),
         })
 
+    def _handle_ipo_listings(self, query: Dict[str, List[str]]) -> None:
+        filter_mode = query.get("filter", ["all"])[0]
+        search = query.get("q", [""])[0]
+        sort = query.get("sort", ["date_desc"])[0]
+        try:
+            limit = min(500, max(1, int(query.get("limit", ["100"])[0])))
+        except (ValueError, TypeError):
+            limit = 100
+
+        service = get_ipo_service(self.db.db_path)
+        data = service.get_listings(filter_mode=filter_mode, search=search, sort=sort, limit=limit)
+        self._send_json(data)
+
+    def _handle_ipo_track(self) -> None:
+        body = self._parse_json_body() or {}
+        symbol = str(body.get("symbol", "")).strip().upper()
+        if not symbol or not re.match(r"^[A-Z0-9&\-]{1,20}$", symbol):
+            self._send_json({"error": "invalid_symbol", "detail": "Valid symbol is required."}, status=400)
+            return
+        name = str(body.get("name", "")).strip()
+        listing_date = str(body.get("listing_date", "")).strip()
+        notes = str(body.get("notes", "")).strip()
+        target_price = body.get("target_price")
+        if target_price is not None and str(target_price).strip() != "":
+            try:
+                target_price = float(target_price)
+            except (ValueError, TypeError):
+                target_price = None
+        else:
+            target_price = None
+        alert_enabled = bool(body.get("alert_enabled", False))
+
+        service = get_ipo_service(self.db.db_path)
+        res = service.track_ipo(
+            symbol=symbol,
+            name=name,
+            listing_date=listing_date,
+            notes=notes,
+            target_price=target_price,
+            alert_enabled=alert_enabled,
+        )
+        self._send_json(res)
+
+    def _handle_ipo_untrack(self) -> None:
+        body = self._parse_json_body() or {}
+        symbol = str(body.get("symbol", "")).strip().upper()
+        if not symbol:
+            self._send_json({"error": "invalid_symbol", "detail": "Symbol is required."}, status=400)
+            return
+        service = get_ipo_service(self.db.db_path)
+        res = service.untrack_ipo(symbol)
+        self._send_json(res)
+
+    def _handle_ipo_sync(self) -> None:
+        service = get_ipo_service(self.db.db_path)
+        res = service.sync_new_shares_pre_market()
+        self._send_json(res)
+
     def _handle_signals_stats(self, query: Optional[Dict[str, List[str]]] = None) -> None:
         session = self._get_current_session()
         if not session:
@@ -1981,6 +2053,8 @@ def run_server(host: Optional[str] = None, port: Optional[int] = None) -> None:
     watchlist.start(db)
     margins = get_intraday_margins()
     margins.start()
+    ipo = get_ipo_service(db.db_path)
+    ipo.start_pre_market_worker()
     print(f"============================================================")
     print(f" MarketScope NSE Flow Terminal running on http://{host}:{port}")
     print(f" Mode: Market Data Feed & Previous Session Archive [{env_name}]")
