@@ -1,0 +1,17 @@
+{
+  "requested_positive_sessions": 62,
+  "existing_local_bars_reused": 357,
+  "distinct_price_dates": [
+    "2026-08-03",
+    "2026-08-05",
+    "2026-10-26"
+  ],
+  "new_external_company_price_downloads": 0,
+  "original_arrival_or_financial_vintage_certified": false,
+  "orders_enabled": false,
+  "complete_price_windows": 17,
+  "missing_or_conflicted_windows": 45,
+  "software_tests_passed": 28,
+  "pyarrow_available_in_inspected_runtime": false,
+  "external_company_price_import_complete": false
+}

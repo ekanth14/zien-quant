@@ -76,6 +76,7 @@ from paper_trading import get_paper_session
 from paper_watchlist import get_paper_watchlist
 from intraday_margins import get_intraday_margins
 from ipo_service import get_ipo_service
+from company_study import get_company_study
 from fyers_history import (
     FyersHistoryAuthError,
     FyersHistoryError,
@@ -319,6 +320,33 @@ class MarketScopeHandler(BaseHTTPRequestHandler):
             return
         elif path in ("/ipo", "/ipo/", "/ipo.html"):
             self._serve_static_file("ipo.html")
+            return
+        elif path in ("/company-research", "/company-research/"):
+            self._serve_static_file("company-study.html")
+            return
+        elif path == "/company-research/charts":
+            try:
+                content = (BASE_DIR.parent / "research" / "company-positive-earnings-study" / "COMPANY_REACTION_DASHBOARD.html").read_text(encoding="utf-8")
+                self._send_text(content, "text/html; charset=utf-8")
+            except OSError:
+                self._send_json({"error": "Imported chart explorer unavailable"}, status=503)
+            return
+
+        if path == "/api/company-study":
+            allowed = {"id", "search", "coverage", "landmark"}
+            if set(query) - allowed:
+                self._send_json({"error": "Unsupported research parameter"}, status=400)
+                return
+            try:
+                self._send_json(get_company_study().response(
+                    event_id=query.get("id", [None])[0], search=query.get("search", [""])[0],
+                    coverage=query.get("coverage", ["all"])[0], landmark=query.get("landmark", ["09:40"])[0]))
+            except KeyError:
+                self._send_json({"error": "Research event not found"}, status=404)
+            except ValueError:
+                self._send_json({"error": "Invalid filter or research snapshot"}, status=400)
+            except (OSError, ImportError):
+                self._send_json({"error": "Company research unavailable"}, status=503)
             return
 
         # Research is read-only: no strategy activation or broker execution route.

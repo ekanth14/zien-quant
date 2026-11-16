@@ -1,0 +1,95 @@
+{
+  "created_at": "2026-10-27T18:37:42.497953+05:30",
+  "website_companies": 2613,
+  "eligible_companies": 1216,
+  "source_rows": {
+    "result_events": 26062,
+    "result_scope_archive": 15337,
+    "result_versions": 59396
+  },
+  "financial_fact_variants": 281,
+  "eligible_company_periods": 14796,
+  "financial_classes": {
+    "INCOMPARABLE": 14670,
+    "POSITIVE": 62,
+    "NEGATIVE": 27,
+    "LOSS_BASE": 5,
+    "TURNAROUND": 5,
+    "MIXED_OR_ZERO": 27
+  },
+  "years": {
+    "2023": {
+      "events": 2598,
+      "comparable": 0,
+      "positive": 0,
+      "positive_complete_mornings": 0
+    },
+    "2024": {
+      "events": 4039,
+      "comparable": 5,
+      "positive": 1,
+      "positive_complete_mornings": 0
+    },
+    "2025": {
+      "events": 4399,
+      "comparable": 19,
+      "positive": 9,
+      "positive_complete_mornings": 0
+    },
+    "2026": {
+      "events": 3760,
+      "comparable": 102,
+      "positive": 52,
+      "positive_complete_mornings": 17
+    }
+  },
+  "positive_events": 62,
+  "positive_complete_mornings": 17,
+  "positive_complete_morning_dates": [
+    "2026-08-03",
+    "2026-08-05",
+    "2026-10-26"
+  ],
+  "positive_with_both_preannouncement_daily_controls": 61,
+  "financial_document_requests": 27154,
+  "cached_xml_files": 49,
+  "candle_inventory": [
+    {
+      "timeframe": 1,
+      "rows": 4416,
+      "symbols": 24,
+      "first_ts": 1792986300,
+      "last_ts": 1792997280
+    },
+    {
+      "timeframe": 5,
+      "rows": 299444,
+      "symbols": 101,
+      "first_ts": 1785383100,
+      "last_ts": 1793008800
+    },
+    {
+      "timeframe": 1440,
+      "rows": 141948,
+      "symbols": 76,
+      "first_ts": 1477453500,
+      "last_ts": 1792727100
+    }
+  ],
+  "financial_variants_conflicted_events": 0,
+  "financial_classes_conflicted_events": 0,
+  "source_files": {
+    "results_db": "[source-home]/Documents/ finance V2/zien-quant/work/runtime/results.db",
+    "candles_db": "[source-home]/Documents/ finance V2/zien-quant/work/runtime/candles.db",
+    "margin_snapshot": "[source-home]/Documents/ finance V2/zien-quant/work/runtime/zerodha-equity-margins.json"
+  },
+  "limitations": [
+    "Current margin universe is not historical eligibility proof.",
+    "No original public financial vintages or earliest venue announcements independently certified.",
+    "First stored disclosure is not certified earliest disclosure.",
+    "Conflicting financial variants are exported and cannot be used for learned forecasts until resolved.",
+    "Source-public and acquisition clocks are separate; later local acquisition does not automatically invalidate hypothetical public-information research.",
+    "All prices retain source labels; original response, adjustments and arrival metadata unverified.",
+    "Complete older intraday prices remain unavailable locally."
+  ]
+}

@@ -1,0 +1,318 @@
+{
+  "schema_version": "1.0",
+  "model_version": "positive-path-kernel-1.0",
+  "research_mode": "PUBLIC_INFORMATION_BACKTEST",
+  "landmark_ist": "09:40",
+  "created_at": "2026-10-27T19:09:10.691264+05:30",
+  "built_at": "2026-10-27T19:09:10.691266+05:30",
+  "latest_information_used_at": null,
+  "feature_variant": "core_financial_opening_price_with_market_context_v1",
+  "feature_contract": null,
+  "dataset_sha256": "19327d753e8781b6d83d3baff50505f98d4ca43e8e32d3d978b0745cc75c61d7",
+  "configuration": {
+    "min_dates": 80,
+    "min_rows": 300,
+    "min_train_dates": 30,
+    "min_selection_dates": 8,
+    "min_calibration_dates": 12,
+    "min_test_dates": 12,
+    "min_symbols": 10,
+    "min_class_train": 5,
+    "min_local_event_ess": 20.0,
+    "min_local_date_ess": 8.0,
+    "train_fraction": 0.6,
+    "calibration_fraction": 0.2,
+    "coverage": 0.8,
+    "bandwidths": [
+      0.5,
+      1.0,
+      2.0
+    ],
+    "half_lives_days": [
+      180.0,
+      730.0
+    ],
+    "sector_shrinkages": [
+      10.0,
+      30.0
+    ],
+    "ridge_penalties": [
+      0.001,
+      0.01,
+      0.1,
+      1.0,
+      10.0
+    ],
+    "temperatures": [
+      0.5,
+      0.75,
+      1.0,
+      1.25,
+      1.5,
+      2.0,
+      3.0
+    ],
+    "ood_z_limit": 8.0,
+    "bootstrap_repetitions": 500,
+    "seed": 7129
+  },
+  "data_audit": {
+    "input_rows": 68,
+    "eligible_verified_rows": 0,
+    "raw_landmark_rows": 17,
+    "raw_landmark_distinct_dates": 3,
+    "raw_landmark_distinct_symbols": 17,
+    "eligible_distinct_dates": 0,
+    "eligible_distinct_symbols": 0,
+    "other_landmark_rows": 51,
+    "rejected_rows": 17,
+    "rejections": [
+      {
+        "row": 1,
+        "event_id": "APOLLO|2026-09-30|2026-10-26",
+        "symbol": "APOLLO",
+        "reasons": [
+          "UNVERIFIED_ORIGINAL_FINANCIAL_VINTAGE_VERIFIED",
+          "UNVERIFIED_SOURCE_TIMESTAMPS_VERIFIED",
+          "UNVERIFIED_PRICE_ADJUSTMENTS_VERIFIED",
+          "UNVERIFIED_INSTRUMENT_MAPPING_VERIFIED",
+          "UNVERIFIED_FEATURE_DEFINITIONS_VERIFIED",
+          "UNVERIFIED_BENCHMARK_SOURCE_OR_DEFINITIONS"
+        ]
+      },
+      {
+        "row": 5,
+        "event_id": "BANKINDIA|2026-09-30|2026-10-26",
+        "symbol": "BANKINDIA",
+        "reasons": [
+          "UNVERIFIED_ORIGINAL_FINANCIAL_VINTAGE_VERIFIED",
+          "UNVERIFIED_SOURCE_TIMESTAMPS_VERIFIED",
+          "UNVERIFIED_PRICE_ADJUSTMENTS_VERIFIED",
+          "UNVERIFIED_INSTRUMENT_MAPPING_VERIFIED",
+          "UNVERIFIED_FEATURE_DEFINITIONS_VERIFIED",
+          "UNVERIFIED_BENCHMARK_SOURCE_OR_DEFINITIONS"
+        ]
+      },
+      {
+        "row": 9,
+        "event_id": "CASTROLIND|2026-06-30|2026-08-05",
+        "symbol": "CASTROLIND",
+        "reasons": [
+          "FEATURES_NOT_AVAILABLE_AT_DECISION",
+          "PUBLIC_FINANCIAL_VERSION_AFTER_DECISION",
+          "UNVERIFIED_ORIGINAL_FINANCIAL_VINTAGE_VERIFIED",
+          "UNVERIFIED_SOURCE_TIMESTAMPS_VERIFIED",
+          "UNVERIFIED_PRICE_ADJUSTMENTS_VERIFIED",
+          "UNVERIFIED_INSTRUMENT_MAPPING_VERIFIED",
+          "UNVERIFIED_FEATURE_DEFINITIONS_VERIFIED",
+          "UNVERIFIED_BENCHMARK_SOURCE_OR_DEFINITIONS"
+        ]
+      },
+      {
+        "row": 13,
+        "event_id": "CGPOWER|2026-09-30|2026-10-26",
+        "symbol": "CGPOWER",
+        "reasons": [
+          "UNVERIFIED_ORIGINAL_FINANCIAL_VINTAGE_VERIFIED",
+          "UNVERIFIED_SOURCE_TIMESTAMPS_VERIFIED",
+          "UNVERIFIED_PRICE_ADJUSTMENTS_VERIFIED",
+          "UNVERIFIED_INSTRUMENT_MAPPING_VERIFIED",
+          "UNVERIFIED_FEATURE_DEFINITIONS_VERIFIED",
+          "UNVERIFIED_BENCHMARK_SOURCE_OR_DEFINITIONS"
+        ]
+      },
+      {
+        "row": 17,
+        "event_id": "CSBBANK|2026-09-30|2026-10-26",
+        "symbol": "CSBBANK",
+        "reasons": [
+          "UNVERIFIED_ORIGINAL_FINANCIAL_VINTAGE_VERIFIED",
+          "UNVERIFIED_SOURCE_TIMESTAMPS_VERIFIED",
+          "UNVERIFIED_PRICE_ADJUSTMENTS_VERIFIED",
+          "UNVERIFIED_INSTRUMENT_MAPPING_VERIFIED",
+          "UNVERIFIED_FEATURE_DEFINITIONS_VERIFIED",
+          "UNVERIFIED_BENCHMARK_SOURCE_OR_DEFINITIONS"
+        ]
+      },
+      {
+        "row": 21,
+        "event_id": "GAEL|2026-06-30|2026-08-03",
+        "symbol": "GAEL",
+        "reasons": [
+          "UNVERIFIED_ORIGINAL_FINANCIAL_VINTAGE_VERIFIED",
+          "UNVERIFIED_SOURCE_TIMESTAMPS_VERIFIED",
+          "UNVERIFIED_PRICE_ADJUSTMENTS_VERIFIED",
+          "UNVERIFIED_INSTRUMENT_MAPPING_VERIFIED",
+          "UNVERIFIED_FEATURE_DEFINITIONS_VERIFIED",
+          "UNVERIFIED_BENCHMARK_SOURCE_OR_DEFINITIONS"
+        ]
+      },
+      {
+        "row": 25,
+        "event_id": "INFY|2026-09-30|2026-10-26",
+        "symbol": "INFY",
+        "reasons": [
+          "UNVERIFIED_ORIGINAL_FINANCIAL_VINTAGE_VERIFIED",
+          "UNVERIFIED_SOURCE_TIMESTAMPS_VERIFIED",
+          "UNVERIFIED_PRICE_ADJUSTMENTS_VERIFIED",
+          "UNVERIFIED_INSTRUMENT_MAPPING_VERIFIED",
+          "UNVERIFIED_FEATURE_DEFINITIONS_VERIFIED",
+          "UNVERIFIED_BENCHMARK_SOURCE_OR_DEFINITIONS"
+        ]
+      },
+      {
+        "row": 29,
+        "event_id": "KAJARIACER|2026-09-30|2026-10-26",
+        "symbol": "KAJARIACER",
+        "reasons": [
+          "UNVERIFIED_ORIGINAL_FINANCIAL_VINTAGE_VERIFIED",
+          "UNVERIFIED_SOURCE_TIMESTAMPS_VERIFIED",
+          "UNVERIFIED_PRICE_ADJUSTMENTS_VERIFIED",
+          "UNVERIFIED_INSTRUMENT_MAPPING_VERIFIED",
+          "UNVERIFIED_FEATURE_DEFINITIONS_VERIFIED",
+          "UNVERIFIED_BENCHMARK_SOURCE_OR_DEFINITIONS"
+        ]
+      },
+      {
+        "row": 33,
+        "event_id": "LUMAXTECH|2026-09-30|2026-10-26",
+        "symbol": "LUMAXTECH",
+        "reasons": [
+          "UNVERIFIED_ORIGINAL_FINANCIAL_VINTAGE_VERIFIED",
+          "UNVERIFIED_SOURCE_TIMESTAMPS_VERIFIED",
+          "UNVERIFIED_PRICE_ADJUSTMENTS_VERIFIED",
+          "UNVERIFIED_INSTRUMENT_MAPPING_VERIFIED",
+          "UNVERIFIED_FEATURE_DEFINITIONS_VERIFIED",
+          "UNVERIFIED_BENCHMARK_SOURCE_OR_DEFINITIONS"
+        ]
+      },
+      {
+        "row": 37,
+        "event_id": "MAHLOG|2026-09-30|2026-10-26",
+        "symbol": "MAHLOG",
+        "reasons": [
+          "UNVERIFIED_ORIGINAL_FINANCIAL_VINTAGE_VERIFIED",
+          "UNVERIFIED_SOURCE_TIMESTAMPS_VERIFIED",
+          "UNVERIFIED_PRICE_ADJUSTMENTS_VERIFIED",
+          "UNVERIFIED_INSTRUMENT_MAPPING_VERIFIED",
+          "UNVERIFIED_FEATURE_DEFINITIONS_VERIFIED",
+          "UNVERIFIED_BENCHMARK_SOURCE_OR_DEFINITIONS"
+        ]
+      },
+      {
+        "row": 41,
+        "event_id": "NESCO|2026-09-30|2026-10-26",
+        "symbol": "NESCO",
+        "reasons": [
+          "UNVERIFIED_ORIGINAL_FINANCIAL_VINTAGE_VERIFIED",
+          "UNVERIFIED_SOURCE_TIMESTAMPS_VERIFIED",
+          "UNVERIFIED_PRICE_ADJUSTMENTS_VERIFIED",
+          "UNVERIFIED_INSTRUMENT_MAPPING_VERIFIED",
+          "UNVERIFIED_FEATURE_DEFINITIONS_VERIFIED",
+          "UNVERIFIED_BENCHMARK_SOURCE_OR_DEFINITIONS"
+        ]
+      },
+      {
+        "row": 45,
+        "event_id": "NETWEB|2026-09-30|2026-10-26",
+        "symbol": "NETWEB",
+        "reasons": [
+          "UNVERIFIED_ORIGINAL_FINANCIAL_VINTAGE_VERIFIED",
+          "UNVERIFIED_SOURCE_TIMESTAMPS_VERIFIED",
+          "UNVERIFIED_PRICE_ADJUSTMENTS_VERIFIED",
+          "UNVERIFIED_INSTRUMENT_MAPPING_VERIFIED",
+          "UNVERIFIED_FEATURE_DEFINITIONS_VERIFIED",
+          "UNVERIFIED_BENCHMARK_SOURCE_OR_DEFINITIONS"
+        ]
+      },
+      {
+        "row": 49,
+        "event_id": "RAILTEL|2026-09-30|2026-10-26",
+        "symbol": "RAILTEL",
+        "reasons": [
+          "UNVERIFIED_ORIGINAL_FINANCIAL_VINTAGE_VERIFIED",
+          "UNVERIFIED_SOURCE_TIMESTAMPS_VERIFIED",
+          "UNVERIFIED_PRICE_ADJUSTMENTS_VERIFIED",
+          "UNVERIFIED_INSTRUMENT_MAPPING_VERIFIED",
+          "UNVERIFIED_FEATURE_DEFINITIONS_VERIFIED",
+          "UNVERIFIED_BENCHMARK_SOURCE_OR_DEFINITIONS"
+        ]
+      },
+      {
+        "row": 53,
+        "event_id": "SBFC|2026-09-30|2026-10-26",
+        "symbol": "SBFC",
+        "reasons": [
+          "UNVERIFIED_ORIGINAL_FINANCIAL_VINTAGE_VERIFIED",
+          "UNVERIFIED_SOURCE_TIMESTAMPS_VERIFIED",
+          "UNVERIFIED_PRICE_ADJUSTMENTS_VERIFIED",
+          "UNVERIFIED_INSTRUMENT_MAPPING_VERIFIED",
+          "UNVERIFIED_FEATURE_DEFINITIONS_VERIFIED",
+          "UNVERIFIED_BENCHMARK_SOURCE_OR_DEFINITIONS"
+        ]
+      },
+      {
+        "row": 57,
+        "event_id": "SBICARD|2026-09-30|2026-10-26",
+        "symbol": "SBICARD",
+        "reasons": [
+          "UNVERIFIED_ORIGINAL_FINANCIAL_VINTAGE_VERIFIED",
+          "UNVERIFIED_SOURCE_TIMESTAMPS_VERIFIED",
+          "UNVERIFIED_PRICE_ADJUSTMENTS_VERIFIED",
+          "UNVERIFIED_INSTRUMENT_MAPPING_VERIFIED",
+          "UNVERIFIED_FEATURE_DEFINITIONS_VERIFIED",
+          "UNVERIFIED_BENCHMARK_SOURCE_OR_DEFINITIONS"
+        ]
+      },
+      {
+        "row": 61,
+        "event_id": "SSWL|2026-09-30|2026-10-26",
+        "symbol": "SSWL",
+        "reasons": [
+          "UNVERIFIED_ORIGINAL_FINANCIAL_VINTAGE_VERIFIED",
+          "UNVERIFIED_SOURCE_TIMESTAMPS_VERIFIED",
+          "UNVERIFIED_PRICE_ADJUSTMENTS_VERIFIED",
+          "UNVERIFIED_INSTRUMENT_MAPPING_VERIFIED",
+          "UNVERIFIED_FEATURE_DEFINITIONS_VERIFIED",
+          "UNVERIFIED_BENCHMARK_SOURCE_OR_DEFINITIONS"
+        ]
+      },
+      {
+        "row": 65,
+        "event_id": "UNIECOM|2026-09-30|2026-10-26",
+        "symbol": "UNIECOM",
+        "reasons": [
+          "UNVERIFIED_ORIGINAL_FINANCIAL_VINTAGE_VERIFIED",
+          "UNVERIFIED_SOURCE_TIMESTAMPS_VERIFIED",
+          "UNVERIFIED_PRICE_ADJUSTMENTS_VERIFIED",
+          "UNVERIFIED_INSTRUMENT_MAPPING_VERIFIED",
+          "UNVERIFIED_FEATURE_DEFINITIONS_VERIFIED",
+          "UNVERIFIED_BENCHMARK_SOURCE_OR_DEFINITIONS"
+        ]
+      }
+    ],
+    "rejection_counts": {
+      "UNVERIFIED_ORIGINAL_FINANCIAL_VINTAGE_VERIFIED": 17,
+      "UNVERIFIED_SOURCE_TIMESTAMPS_VERIFIED": 17,
+      "UNVERIFIED_PRICE_ADJUSTMENTS_VERIFIED": 17,
+      "UNVERIFIED_INSTRUMENT_MAPPING_VERIFIED": 17,
+      "UNVERIFIED_FEATURE_DEFINITIONS_VERIFIED": 17,
+      "UNVERIFIED_BENCHMARK_SOURCE_OR_DEFINITIONS": 17,
+      "FEATURES_NOT_AVAILABLE_AT_DECISION": 1,
+      "PUBLIC_FINANCIAL_VERSION_AFTER_DECISION": 1
+    }
+  },
+  "status": "INSUFFICIENT_VERIFIED_DATA",
+  "predictions_enabled": false,
+  "orders_enabled": false,
+  "model": null,
+  "calibration": null,
+  "test_metrics": null,
+  "synthetic_mechanics_only": false,
+  "prediction_meaning": "Raw reference-price moves and future high/low excursions; no fill, fees or trading profit assumed.",
+  "blockers": [
+    "INSUFFICIENT_VERIFIED_ROWS",
+    "INSUFFICIENT_INDEPENDENT_DATE_COVERAGE",
+    "INSUFFICIENT_ISSUER_DIVERSITY"
+  ]
+}

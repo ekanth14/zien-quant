@@ -1,0 +1,14 @@
+test_absent_artifact_is_unavailable_without_importing_numpy (test_forecast_bridge.BridgeTests.test_absent_artifact_is_unavailable_without_importing_numpy) ... ok
+test_corrupt_json_is_unavailable (test_forecast_bridge.BridgeTests.test_corrupt_json_is_unavailable) ... ok
+test_failed_training_artifact_stays_disabled (test_forecast_bridge.BridgeTests.test_failed_training_artifact_stays_disabled) ... ok
+test_malformed_financial_snapshot_abstains (test_forecast_bridge.BridgeTests.test_malformed_financial_snapshot_abstains) ... ok
+test_naive_clock_rejected (test_forecast_bridge.BridgeTests.test_naive_clock_rejected) ... ok
+test_no_future_target_is_forwarded_to_inference (test_forecast_bridge.BridgeTests.test_no_future_target_is_forwarded_to_inference) ... ok
+test_no_path_from_company_can_choose_artifact_file (test_forecast_bridge.BridgeTests.test_no_path_from_company_can_choose_artifact_file) ... ok
+test_real_engine_and_shared_feature_module_are_both_loaded (test_forecast_bridge.BridgeTests.test_real_engine_and_shared_feature_module_are_both_loaded) ... ok
+test_status_for_all_registered_landmarks (test_forecast_bridge.BridgeTests.test_status_for_all_registered_landmarks) ... ok
+
+----------------------------------------------------------------------
+Ran 9 tests in 0.034s
+
+OK

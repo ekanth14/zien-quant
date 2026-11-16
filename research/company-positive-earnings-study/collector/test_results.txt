@@ -1,0 +1,33 @@
+test_complete_csv_resamples_exact_21_and_idempotent (test_collect_history.CollectorTests) ... ok
+test_complete_export_preserves_provenance_and_unknown_verification (test_collect_history.CollectorTests) ... ok
+test_conflicting_duplicate_quarantines_window (test_collect_history.CollectorTests) ... ok
+test_daily_budget_stops_without_sleeping_hours (test_collect_history.CollectorTests) ... ok
+test_downloader_rejects_credential_url_and_existing_unknown_file (test_collect_history.CollectorTests) ... ok
+test_end_stamp_shift_and_aliases (test_collect_history.CollectorTests) ... ok
+test_gap_never_filled (test_collect_history.CollectorTests) ... ok
+test_gzip_csv_supported (test_collect_history.CollectorTests) ... ok
+test_invalid_ohlc_nonfinite_negative_volume (test_collect_history.CollectorTests) ... ok
+test_minute_limit_enforced_not_only_second_limit (test_collect_history.CollectorTests) ... ok
+test_missing_volume_preserved_without_inventing_index_volume (test_collect_history.CollectorTests) ... ok
+test_naive_requires_explicit_timezone (test_collect_history.CollectorTests) ... ok
+test_off_grid_five_minute_rejected (test_collect_history.CollectorTests) ... ok
+test_other_source_disagreement_is_retained_and_flagged (test_collect_history.CollectorTests) ... ok
+test_overlapping_requests_deduplicate (test_collect_history.CollectorTests) ... ok
+test_parquet_missing_dependency_fails_explicitly (test_collect_history.CollectorTests) ... ok
+test_positive_only_scopes_financial_result_not_chart_direction (test_collect_history.CollectorTests) ... ok
+test_private_fyers_credentials_never_assumed (test_collect_history.CollectorTests) ... ok
+test_public_download_resumes_only_matching_etag_range (test_collect_history.CollectorTests) ... ok
+test_public_downloader_byte_budget_and_checksum (test_collect_history.CollectorTests) ... ok
+test_resume_progresses_after_row_budget (test_collect_history.CollectorTests) ... ok
+test_allowlist_exact_host_https (test_financial_documents.DocumentTests) ... ok
+test_block_page_stops_after_first_document (test_financial_documents.DocumentTests) ... ok
+test_cached_document_not_downloaded_twice (test_financial_documents.DocumentTests) ... ok
+test_conservative_minimum_delay_required (test_financial_documents.DocumentTests) ... ok
+test_exact_project_parser_and_source_clocks_remain_claims (test_financial_documents.DocumentTests) ... ok
+test_network_failure_breaks_batch_after_one_request (test_financial_documents.DocumentTests) ... ok
+test_pdf_saved_and_explicitly_unparsed (test_financial_documents.DocumentTests) ... ok
+
+----------------------------------------------------------------------
+Ran 28 tests in 0.102s
+
+OK

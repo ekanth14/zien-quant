@@ -1,5 +1,10 @@
 # Zien Quant - Order Block Terminal
 
+The supplied November update archives have been reviewed and the company earnings
+pipeline is integrated at **`http://127.0.0.1:8765/company-research`**. It includes
+the imported chart explorer, collectors, causal features and model bridge, with
+unvalidated forecasts kept unavailable. See the [integration review and commands](docs/UPDATES_INTEGRATION_2026-11-16.md).
+
 [![CI](https://github.com/ekanth14/zien-quant/actions/workflows/ci.yml/badge.svg)](https://github.com/ekanth14/zien-quant/actions)
 ![Python 3.12+](https://img.shields.io/badge/python-3.12%2B-blue.svg)
 ![Architecture](https://img.shields.io/badge/architecture-stdlib%20only-success.svg)
@@ -327,7 +332,7 @@ Day reports are stored in SQLite, available when the market is closed, and expor
 To load backend changes from a normal local Terminal:
 
 ```bash
-cd /Users/chethan/Documents/finance/zien-quant
+cd /path/to/zien-quant
 bash ./scripts/restart-local.sh
 ```
 

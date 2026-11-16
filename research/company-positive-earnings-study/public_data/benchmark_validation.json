@@ -1,0 +1,17 @@
+{
+  "downloaded_minute_rows": 22500,
+  "complete_benchmark_mornings": 60,
+  "first_date": "2026-07-01",
+  "last_date": "2026-10-26",
+  "company_events_with_benchmark": 17,
+  "context_rows": 85,
+  "company_directions_at_1100": {
+    "UP": 9,
+    "DOWN": 8
+  },
+  "scope_definition": "Company has positive financial result; its own next-day chart can rise or fall.",
+  "prices_downloaded_online": true,
+  "new_company_price_history_downloaded": false,
+  "all_hashes_and_timezones_checked": true,
+  "trained_forecasts": false
+}

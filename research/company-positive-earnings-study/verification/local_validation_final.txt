@@ -1,0 +1,27 @@
+{
+  "status": "passed",
+  "ledger_rows_checked": 14796,
+  "comparable_pairs_arithmetic_checked": 126,
+  "positive_pairs_checked": 62,
+  "complete_positive_mornings_checked": 17,
+  "unique_complete_stock_dates": 17,
+  "complete_positive_dates": [
+    "2026-08-03",
+    "2026-08-05",
+    "2026-10-26"
+  ],
+  "checks": [
+    "uniqueissuerperiod",
+    "announcementonlycutoff",
+    "strictleverage",
+    "literalnextdate",
+    "matchingquarterdefinitions",
+    "growthatithmetic",
+    "separatepublicandacquiredclocks",
+    "nocertifiedvintageassumption",
+    "preannouncementdailycontrols",
+    "21exactbars",
+    "nomultipledatecloning",
+    "returnarithmetic"
+  ]
+}

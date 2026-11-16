@@ -1,0 +1,27 @@
+{
+  "status": "passed",
+  "companies": 17,
+  "independent_dates": 3,
+  "render_combinations_checked": 680,
+  "chart_modes": [
+    "line",
+    "candles"
+  ],
+  "landmarks": [
+    "09:30",
+    "09:40",
+    "10:00",
+    "10:30",
+    "11:00"
+  ],
+  "company_search": true,
+  "own_company_identity": true,
+  "completed_bars_only": true,
+  "separate_observed_outcome": true,
+  "separate_market_context": true,
+  "small_svg_width": 350,
+  "keyboard_ohlc_inspection": true,
+  "predictions": null,
+  "network_calls": 0,
+  "limitation": "DOM/SVG behavior checked with linkedom; no real-browser visual screenshot or live website deployment."
+}

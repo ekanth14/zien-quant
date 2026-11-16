@@ -34,3 +34,7 @@
 *.ttf binary
 *.db binary
 *.sqlite binary
+
+# Imported research files have byte-level provenance hashes. Preserve their
+# exact line endings across Linux and Windows checkouts.
+research/company-positive-earnings-study/** -text whitespace=blank-at-eol,blank-at-eof,space-before-tab,cr-at-eol

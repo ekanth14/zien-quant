@@ -1,0 +1,77 @@
+{
+  "date_ist": "2026-10-27",
+  "scope": "Selected company's own next trading day's 09:15–11:00 chart following its positive financial result; falling paths retained.",
+  "full_requested_history_collected": false,
+  "scientific_task_complete": false,
+  "implemented": {
+    "resumable_collection": true,
+    "financial_document_worker": true,
+    "trainable_direction_magnitude_path_model": true,
+    "shared_causal_features": true,
+    "website_forecast_bridge": true,
+    "offline_company_chart_review": true
+  },
+  "actual_data": {
+    "website_companies": 2613,
+    "eligible_frozen_cohort": 1216,
+    "company_reporting_periods": 14796,
+    "financial_fact_variants": 281,
+    "comparable_quarter_pairs": 126,
+    "known_positive_financial_events": 62,
+    "complete_company_sessions": 17,
+    "distinct_company_dates": 3,
+    "rising_company_sessions": 9,
+    "falling_company_sessions": 8,
+    "known_positive_sessions_still_missing_prices": 45,
+    "company_candles_reused_local": 357,
+    "new_online_company_price_rows": 0,
+    "new_online_benchmark_minute_rows": 22500,
+    "benchmark_complete_mornings": 60,
+    "model_landmark_rows": 68,
+    "financial_document_urls_queued": 27154
+  },
+  "forecasts": {
+    "market_model_fitted": false,
+    "all_four_landmarks": "INSUFFICIENT_VERIFIED_DATA",
+    "accuracy": null,
+    "probabilities_enabled": false,
+    "orders_enabled": false
+  },
+  "validation": {
+    "unit_tests_passed": 70,
+    "model": 33,
+    "collector": 28,
+    "website_bridge": 9,
+    "dom_render_combinations": 680,
+    "all_validation_runs": {
+      "model": {
+        "exit_code": 0
+      },
+      "collector": {
+        "exit_code": 0
+      },
+      "website": {
+        "exit_code": 0
+      },
+      "local_validation": {
+        "exit_code": 0
+      },
+      "dashboard": {
+        "exit_code": 0
+      }
+    },
+    "actual_market_profitability_tested": false,
+    "real_browser_visual_check": false
+  },
+  "blockers": [
+    "Full historical company prices not downloaded",
+    "Original point-in-time financial versions and provider/instrument adjustments remain unverified",
+    "Available complete company sessions cover only three dates",
+    "Shell requests fail DNS; text readers cannot fetch the large public archives",
+    "Current website NumPy dependency absent and app folder outside writable roots"
+  ],
+  "source_clock_policy": "Later acquisition is allowed in a public-information historical study when original source version/publication is established; operational app replay additionally requires actual app arrival/extraction clocks.",
+  "website_installed": false,
+  "next_action": "Run the prepared public downloader/importer in a network-capable runtime, validate sources and financial originals, then resume fitting and held-out evaluation.",
+  "software_tests_are_not_prediction_accuracy": true
+}

@@ -1,0 +1,5 @@
+# Optional offline earnings model; the web page/status works without NumPy.
+# Original bundle was tested with 2.3.5; integration is also checked on 1.26.4.
+numpy>=1.26.4,<3
+# Optional only for Parquet history imports; not needed by the website or CSV importer.
+# pyarrow

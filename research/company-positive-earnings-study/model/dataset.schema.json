@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Positive financial result next-session path research inputs",
+  "type": "object",
+  "required": ["schema_version", "research_mode", "rows"],
+  "properties": {
+    "schema_version": {"const": "1.0"},
+    "research_mode": {"enum": ["PUBLIC_INFORMATION_BACKTEST", "OPERATIONAL_APP_REPLAY"]},
+    "synthetic_mechanics_only": {"type": "boolean"},
+    "rows": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["event_id", "symbol", "session_date", "announced_at", "decision_at", "features_known_at", "target_available_at", "reference_price", "movement_band_bps", "feature_variant", "features", "targets", "eligibility", "quality", "provenance"],
+        "properties": {
+          "event_id": {"type": "string", "minLength": 1},
+          "symbol": {"type": "string", "minLength": 1},
+          "feature_variant": {"type": "string", "minLength": 1},
+          "session_date": {"type": "string", "format": "date"},
+          "announced_at": {"type": "string", "format": "date-time"},
+          "decision_at": {"type": "string", "format": "date-time"},
+          "features_known_at": {"type": "string", "format": "date-time"},
+          "target_available_at": {"type": "string", "format": "date-time"},
+          "reference_price": {"type": "number", "exclusiveMinimum": 0},
+          "movement_band_bps": {"type": "number", "exclusiveMinimum": 0},
+          "features": {"type": "object", "minProperties": 1, "additionalProperties": {"type": "number"}},
+          "targets": {
+            "type": "object",
+            "required": ["return_1100_bps", "max_up_bps", "max_down_bps"],
+            "properties": {
+              "return_1100_bps": {"type": "number"},
+              "max_up_bps": {"type": "number", "minimum": 0},
+              "max_down_bps": {"type": "number", "maximum": 0},
+              "return_1000_bps": {"type": "number"},
+              "return_1030_bps": {"type": "number"}
+            },
+            "additionalProperties": {"type": "number"}
+          },
+          "eligibility": {
+            "type": "object",
+            "required": ["positive", "leverage_above_3", "in_dashboard"],
+            "properties": {"positive": {"type": "boolean"}, "leverage_above_3": {"type": "boolean"}, "in_dashboard": {"type": "boolean"}}
+          },
+          "quality": {
+            "type": "object",
+            "required": ["original_financial_vintage_verified", "source_timestamps_verified", "price_adjustments_verified", "instrument_mapping_verified", "bars_complete", "next_session_verified", "continuous_0915_1100", "feature_definitions_verified"],
+            "additionalProperties": {"type": "boolean"}
+          },
+          "provenance": {
+            "type": "object",
+            "required": ["financial_version_available_at", "original_publication_at", "last_feature_bar_end", "registered_bar_lag_seconds"],
+            "properties": {
+              "financial_version_available_at": {"type": "string", "format": "date-time"},
+              "original_publication_at": {"type": "string", "format": "date-time"},
+              "last_feature_bar_end": {"type": "string", "format": "date-time"},
+              "registered_bar_lag_seconds": {"type": "number", "minimum": 0, "maximum": 3600},
+              "acquired_at": {"type": "string", "format": "date-time"},
+              "app_first_seen_at": {"type": "string", "format": "date-time"},
+              "extraction_completed_at": {"type": "string", "format": "date-time"},
+              "last_feature_bar_arrived_at": {"type": "string", "format": "date-time"}
+            }
+          }
+        }
+      }
+    }
+  },
+  "description": "Schema permits false quality flags so an acquisition ledger can truthfully record unusable inputs. Training requires all mandatory flags true. The Python validator enforces information clocks, target coherence, chronology, feature variants, scope, and operational-mode extra clocks. Future-only inference rows omit targets/target_available_at and use training=False validation."
+}

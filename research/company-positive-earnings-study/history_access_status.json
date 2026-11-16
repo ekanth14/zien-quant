@@ -1,0 +1,32 @@
+{
+  "checked_date_ist": "2026-10-27",
+  "active_project_fyers_app_configuration_present": false,
+  "active_project_fyers_access_token_present": false,
+  "legacy_project_fyers_app_configuration_present": true,
+  "legacy_project_fyers_access_token_present": false,
+  "process_fyers_access_token_present": false,
+  "scoped_fyers_session_file_found": false,
+  "authenticated_history_request_attempted": false,
+  "shell_public_https_probes": 3,
+  "shell_probe_result": "DNS_UNAVAILABLE",
+  "new_market_price_responses_collected": 0,
+  "account_entitlement_verified": false,
+  "required_intraday_start_date": "2023-05-06",
+  "documented_standard_intraday_history": "Last 1 year",
+  "documented_prime_intraday_history": "Entire available history, described as 5+ years; instrument-specific availability must be checked",
+  "documented_data_api_limits": {
+    "standard": {"per_second": 5, "per_minute": 50, "per_day": 5000},
+    "prime": {"per_second": 10, "per_minute": 500, "per_day": 500000}
+  },
+  "secrets_printed_or_copied": false,
+  "orders_or_account_changes": false,
+  "primary_sources": [
+    "https://fyers.in/api-docs/v3/api/data-api",
+    "https://fyers.in/api-docs/v3/getting-started/plans-and-limits/"
+  ],
+  "required_external_changes": [
+    "Private valid market-data authorization",
+    "Verified entitlement returning a requested 2023 intraday session",
+    "A runtime with network access to official data hosts"
+  ]
+}

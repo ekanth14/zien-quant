@@ -1,0 +1,44 @@
+{
+  "source_kind": "Public community-maintained NIFTY50 benchmark, not company price history",
+  "repository": "technovusin/nifty50-historical-data",
+  "publisher_license": "MIT",
+  "provider_independent_verification": false,
+  "files": [
+    {
+      "file": "NIFTY50_1min_2026-07.csv",
+      "path": "1min/2026/NIFTY50_1min_2026-07.csv",
+      "github_blob_sha": "b429b8a4533b53cb498719e6db74b6a113a1d1b1",
+      "source_url": "https://github.com/technovusin/nifty50-historical-data/blob/main/1min/2026/NIFTY50_1min_2026-07.csv",
+      "characters": 623542,
+      "lines": 8627,
+      "first_line": "Epoch,Timestamp,Open,High,Low,Close,Volume",
+      "local_sha256": "8aa29ad194a62075d00de80ffeb19c366b4f54f3aa7775c12cae1e12471a8217",
+      "exact_github_blob_match": true,
+      "bytes": 623542
+    },
+    {
+      "file": "NIFTY50_1min_2026-08.csv",
+      "path": "1min/2026/NIFTY50_1min_2026-08.csv",
+      "github_blob_sha": "2c4cd9a549faaa604c9dc64650241b25f561463c",
+      "source_url": "https://github.com/technovusin/nifty50-historical-data/blob/main/1min/2026/NIFTY50_1min_2026-08.csv",
+      "characters": 568266,
+      "lines": 7877,
+      "first_line": "Epoch,Timestamp,Open,High,Low,Close,Volume",
+      "local_sha256": "156c91df4181ec6bd2430f35472131277d62c4d10fbc0a82aca78ebb872d3ac2",
+      "exact_github_blob_match": true,
+      "bytes": 568266
+    },
+    {
+      "file": "NIFTY50_1min_2026-10.csv",
+      "path": "1min/2026/NIFTY50_1min_2026-10.csv",
+      "github_blob_sha": "af45b32ebbfb986ec331cfc35d2de9ecf0f85255",
+      "source_url": "https://github.com/technovusin/nifty50-historical-data/blob/main/1min/2026/NIFTY50_1min_2026-10.csv",
+      "characters": 430823,
+      "lines": 6002,
+      "first_line": "Epoch,Timestamp,Open,High,Low,Close,Volume",
+      "local_sha256": "1ad2f8fe45484e37a1de3ad0f39bb7aefe833c1435da4cdf70a9bf530bd06871",
+      "exact_github_blob_match": true,
+      "bytes": 430823
+    }
+  ]
+}

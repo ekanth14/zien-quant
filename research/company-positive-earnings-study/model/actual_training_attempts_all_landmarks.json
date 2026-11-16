@@ -1,0 +1,106 @@
+[
+  {
+    "landmark_ist": "09:30",
+    "status": "INSUFFICIENT_VERIFIED_DATA",
+    "raw_company_sessions": 17,
+    "raw_distinct_dates": 3,
+    "verified_rows": 0,
+    "predictions_enabled": false,
+    "model_fitted": false,
+    "market_accuracy": null,
+    "blockers": [
+      "INSUFFICIENT_VERIFIED_ROWS",
+      "INSUFFICIENT_INDEPENDENT_DATE_COVERAGE",
+      "INSUFFICIENT_ISSUER_DIVERSITY"
+    ],
+    "rejection_counts": {
+      "UNVERIFIED_ORIGINAL_FINANCIAL_VINTAGE_VERIFIED": 17,
+      "UNVERIFIED_SOURCE_TIMESTAMPS_VERIFIED": 17,
+      "UNVERIFIED_PRICE_ADJUSTMENTS_VERIFIED": 17,
+      "UNVERIFIED_INSTRUMENT_MAPPING_VERIFIED": 17,
+      "UNVERIFIED_FEATURE_DEFINITIONS_VERIFIED": 17,
+      "UNVERIFIED_BENCHMARK_SOURCE_OR_DEFINITIONS": 17,
+      "FEATURES_NOT_AVAILABLE_AT_DECISION": 1,
+      "PUBLIC_FINANCIAL_VERSION_AFTER_DECISION": 1
+    },
+    "artifact": "actual_training_attempts/0930.json"
+  },
+  {
+    "landmark_ist": "09:40",
+    "status": "INSUFFICIENT_VERIFIED_DATA",
+    "raw_company_sessions": 17,
+    "raw_distinct_dates": 3,
+    "verified_rows": 0,
+    "predictions_enabled": false,
+    "model_fitted": false,
+    "market_accuracy": null,
+    "blockers": [
+      "INSUFFICIENT_VERIFIED_ROWS",
+      "INSUFFICIENT_INDEPENDENT_DATE_COVERAGE",
+      "INSUFFICIENT_ISSUER_DIVERSITY"
+    ],
+    "rejection_counts": {
+      "UNVERIFIED_ORIGINAL_FINANCIAL_VINTAGE_VERIFIED": 17,
+      "UNVERIFIED_SOURCE_TIMESTAMPS_VERIFIED": 17,
+      "UNVERIFIED_PRICE_ADJUSTMENTS_VERIFIED": 17,
+      "UNVERIFIED_INSTRUMENT_MAPPING_VERIFIED": 17,
+      "UNVERIFIED_FEATURE_DEFINITIONS_VERIFIED": 17,
+      "UNVERIFIED_BENCHMARK_SOURCE_OR_DEFINITIONS": 17,
+      "FEATURES_NOT_AVAILABLE_AT_DECISION": 1,
+      "PUBLIC_FINANCIAL_VERSION_AFTER_DECISION": 1
+    },
+    "artifact": "actual_training_attempts/0940.json"
+  },
+  {
+    "landmark_ist": "10:00",
+    "status": "INSUFFICIENT_VERIFIED_DATA",
+    "raw_company_sessions": 17,
+    "raw_distinct_dates": 3,
+    "verified_rows": 0,
+    "predictions_enabled": false,
+    "model_fitted": false,
+    "market_accuracy": null,
+    "blockers": [
+      "INSUFFICIENT_VERIFIED_ROWS",
+      "INSUFFICIENT_INDEPENDENT_DATE_COVERAGE",
+      "INSUFFICIENT_ISSUER_DIVERSITY"
+    ],
+    "rejection_counts": {
+      "UNVERIFIED_ORIGINAL_FINANCIAL_VINTAGE_VERIFIED": 17,
+      "UNVERIFIED_SOURCE_TIMESTAMPS_VERIFIED": 17,
+      "UNVERIFIED_PRICE_ADJUSTMENTS_VERIFIED": 17,
+      "UNVERIFIED_INSTRUMENT_MAPPING_VERIFIED": 17,
+      "UNVERIFIED_FEATURE_DEFINITIONS_VERIFIED": 17,
+      "UNVERIFIED_BENCHMARK_SOURCE_OR_DEFINITIONS": 17,
+      "FEATURES_NOT_AVAILABLE_AT_DECISION": 1,
+      "PUBLIC_FINANCIAL_VERSION_AFTER_DECISION": 1
+    },
+    "artifact": "actual_training_attempts/1000.json"
+  },
+  {
+    "landmark_ist": "10:30",
+    "status": "INSUFFICIENT_VERIFIED_DATA",
+    "raw_company_sessions": 17,
+    "raw_distinct_dates": 3,
+    "verified_rows": 0,
+    "predictions_enabled": false,
+    "model_fitted": false,
+    "market_accuracy": null,
+    "blockers": [
+      "INSUFFICIENT_VERIFIED_ROWS",
+      "INSUFFICIENT_INDEPENDENT_DATE_COVERAGE",
+      "INSUFFICIENT_ISSUER_DIVERSITY"
+    ],
+    "rejection_counts": {
+      "UNVERIFIED_ORIGINAL_FINANCIAL_VINTAGE_VERIFIED": 17,
+      "UNVERIFIED_SOURCE_TIMESTAMPS_VERIFIED": 17,
+      "UNVERIFIED_PRICE_ADJUSTMENTS_VERIFIED": 17,
+      "UNVERIFIED_INSTRUMENT_MAPPING_VERIFIED": 17,
+      "UNVERIFIED_FEATURE_DEFINITIONS_VERIFIED": 17,
+      "UNVERIFIED_BENCHMARK_SOURCE_OR_DEFINITIONS": 17,
+      "FEATURES_NOT_AVAILABLE_AT_DECISION": 1,
+      "PUBLIC_FINANCIAL_VERSION_AFTER_DECISION": 1
+    },
+    "artifact": "actual_training_attempts/1030.json"
+  }
+]

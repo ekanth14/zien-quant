@@ -1,0 +1,26 @@
+{
+  "date_ist": "2026-10-27",
+  "shell_probes": [
+    {
+      "host": "huggingface.co",
+      "path": "Public dataset README",
+      "result": "URLError / DNS Errno 8"
+    },
+    {
+      "host": "raw.githubusercontent.com",
+      "path": "Public repository LICENSE",
+      "result": "URLError / DNS Errno 8"
+    }
+  ],
+  "tool_fetches": {
+    "monthly_public_csvs": 3,
+    "downloaded_benchmark_minute_rows": 22500,
+    "exact_git_blob_hashes_verified": true,
+    "large_2023_csv": "Web raw reader rejected source as exceeding content-length limit",
+    "financial_xml": "Not accessible via web reader",
+    "huggingface_rows_filter_api": "Not accessible via web reader",
+    "github_binary_archive": "Unsupported by GitHub connector"
+  },
+  "company_price_history_downloaded_online": 0,
+  "limitations_are_access_not_proof_of_absent_data": true
+}

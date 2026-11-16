@@ -1,0 +1,103 @@
+{
+  "checked_date_ist": "2026-10-27",
+  "automatic_large_downloads_performed": false,
+  "sources": [
+    {
+      "publisher": "xxparthparekhxx",
+      "dataset": "indian-stock-market-minute-data",
+      "repository_url": "https://huggingface.co/datasets/xxparthparekhxx/indian-stock-market-minute-data",
+      "published_license_claim": "MIT",
+      "minute_range_claim": "2022\u20132026",
+      "viewer_latest_timestamp_claim": "2026-01-21T09:59:00Z",
+      "total_minute_archive_size_claim": "10.4 GB",
+      "schema_claim": [
+        "symbol",
+        "timestamp UTC",
+        "open",
+        "high",
+        "low",
+        "close",
+        "volume",
+        "oi"
+      ],
+      "original_provider_and_adjustment_policy_verified": false,
+      "downloaded_price_rows_after_cutoff_here": 0,
+      "files": [
+        {
+          "url": "https://huggingface.co/datasets/xxparthparekhxx/indian-stock-market-minute-data/resolve/main/minute/train-00000.parquet?download=true",
+          "sha256": null,
+          "mutable_main_url": true
+        },
+        {
+          "url": "https://huggingface.co/datasets/xxparthparekhxx/indian-stock-market-minute-data/resolve/main/minute/train-00001.parquet?download=true",
+          "sha256": null,
+          "mutable_main_url": true
+        },
+        {
+          "url": "https://huggingface.co/datasets/xxparthparekhxx/indian-stock-market-minute-data/resolve/main/minute/train-00002.parquet?download=true",
+          "sha256": null,
+          "mutable_main_url": true
+        },
+        {
+          "url": "https://huggingface.co/datasets/xxparthparekhxx/indian-stock-market-minute-data/resolve/main/minute/train-00003.parquet?download=true",
+          "sha256": null,
+          "mutable_main_url": true
+        },
+        {
+          "url": "https://huggingface.co/datasets/xxparthparekhxx/indian-stock-market-minute-data/resolve/main/minute/train-00004.parquet?download=true",
+          "sha256": null,
+          "mutable_main_url": true
+        },
+        {
+          "url": "https://huggingface.co/datasets/xxparthparekhxx/indian-stock-market-minute-data/resolve/main/minute/train-00005.parquet?download=true",
+          "sha256": null,
+          "mutable_main_url": true
+        },
+        {
+          "url": "https://huggingface.co/datasets/xxparthparekhxx/indian-stock-market-minute-data/resolve/main/minute/train-00006.parquet?download=true",
+          "sha256": null,
+          "mutable_main_url": true
+        },
+        {
+          "url": "https://huggingface.co/datasets/xxparthparekhxx/indian-stock-market-minute-data/resolve/main/minute/train-00007.parquet?download=true",
+          "sha256": null,
+          "mutable_main_url": true
+        }
+      ]
+    },
+    {
+      "publisher": "voletiramu",
+      "dataset": "nse-fno-1min-data",
+      "repository_url": "https://github.com/voletiramu/nse-fno-1min-data",
+      "published_usage_claim": "Research/educational; no commercial redistribution",
+      "range_claim": [
+        "2024-04-01",
+        "2026-04-30"
+      ],
+      "symbols_claim": 214,
+      "file": {
+        "url": "https://github.com/voletiramu/nse-fno-1min-data/releases/download/v1.0.0/stocks_1m_csvs.zip",
+        "bytes": 485923642,
+        "sha256": "20024713c455cc16b5daae91e06991d57a1acfa6a30c77bb7d5a742ee1789ab2"
+      },
+      "downloaded_here": false,
+      "full_requested_date_range_covered": false
+    },
+    {
+      "publisher": "bh1rg1v",
+      "dataset": "algorithmic-trading equity archive",
+      "repository_url": "https://github.com/bh1rg1v/algorithmic-trading/blob/main/data/storage/raw/equity/README.md",
+      "revision_checked": "7a8eb320a5e7e25a65e52d85ebfb087b03c089e5",
+      "range_claim": [
+        "2015-04-01",
+        "2025-03-31"
+      ],
+      "symbols_claim": 1852,
+      "hosting": "Jio Cloud linked by publisher",
+      "five_minute_size_claim": "12 GB",
+      "rights_and_contents_verified": false,
+      "downloaded_here": false
+    }
+  ],
+  "coverage_note": "Publisher claims require per-symbol/session validation; public accessibility is not proof of exact requested coverage or original financial vintage."
+}
